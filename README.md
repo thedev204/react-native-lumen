@@ -2,9 +2,13 @@
 
 > A high-performance, fully customizable app tour library for React Native, powered by Reanimated 3.
 
-![Banner](https://github.com/user-attachments/assets/placeholder-banner)
+![Banner](./assets/banner.png)
 
-![Example GIF](https://github.com/user-attachments/assets/placeholder-gif)
+## Demo
+
+<p>
+  <img src="./assets/showcase.gif" width="220" alt="App Tour Demo" />
+</p>
 
 ## Features
 
