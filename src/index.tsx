@@ -2,6 +2,11 @@ export * from './types';
 export * from './components/TourProvider';
 export * from './components/TourZone';
 export * from './hooks/useTour';
+export { useTourScrollView } from './hooks/useTourScrollView';
+export type {
+  TourScrollViewOptions,
+  TourScrollViewResult,
+} from './hooks/useTourScrollView';
 export { TourOverlay } from './components/TourOverlay';
 export { TourTooltip } from './components/TourTooltip';
 export * from './constants/defaults';
@@ -24,5 +29,6 @@ export type {
   TourLabels,
   TooltipStyles,
   TourPersistenceConfig,
+  TourContextType,
   StorageAdapter,
 } from './types';

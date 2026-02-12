@@ -349,6 +349,13 @@ export interface TourContextType {
    */
   config?: TourConfig;
   /**
+   * Animated ref to attach to your ScrollView for auto-scrolling.
+   * Use this ref directly on your ScrollView/Animated.ScrollView component.
+   * For custom scroll view components, use the useTourScrollView hook instead.
+   */
+  scrollViewRef: React.RefObject<any>;
+  /**
+   * @deprecated Use scrollViewRef directly instead.
    * Registers the main ScrollView ref for auto-scrolling
    */
   setScrollViewRef: (ref: any) => void;

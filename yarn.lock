@@ -6800,12 +6800,13 @@ react-native-is-edge-to-edge@^1.2.1:
 react-native-is-edge-to-edge@1.1.7:
   version "1.1.7"
 
-"react-native-lumen-example@file:C:\\Users\\harry\\Documents\\github\\react-native-lumen\\example":
+"react-native-lumen-example@file:/workspace/react-native-lumen/example":
   version "1.0.0"
   resolved "file:example"
   dependencies:
     "@expo/metro-runtime" "~6.1.2"
     expo "~54.0.32"
+    expo-modules-core "^3.0.29"
     expo-status-bar "~3.0.9"
     lucide-react-native "^0.563.0"
     react "19.1.0"

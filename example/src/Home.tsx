@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
-import { TourZone, useTour } from 'react-native-lumen';
+import { TourZone, useTour, useTourScrollView } from 'react-native-lumen';
 import {
   User,
   BarChart2,
@@ -31,14 +31,16 @@ const Card = ({
 );
 
 export const Home = () => {
-  const { start, scrollViewRef, hasSavedProgress, clearProgress } = useTour();
+  const { start, hasSavedProgress, clearProgress } = useTour();
+  // Use the new useTourScrollView hook for cleaner scroll view integration
+  const { scrollViewProps } = useTourScrollView();
   const [bio, setBio] = useState(
     'Passionate developer with 5+ years of experience in React Native and mobile app development. Love creating intuitive user experiences!'
   );
 
   return (
     <Animated.ScrollView
-      ref={scrollViewRef}
+      {...scrollViewProps}
       contentContainerStyle={styles.scrollContent}
     >
       <View style={styles.container}>
