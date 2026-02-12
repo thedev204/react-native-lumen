@@ -1,5 +1,4 @@
 import React, {
-  createContext,
   useState,
   useCallback,
   useMemo,
@@ -20,14 +19,13 @@ import type {
   TourConfig,
   InternalTourContextType,
 } from '../types';
+import { TourContext } from '../context/TourContext';
 import { TourOverlay } from './TourOverlay';
 import { TourTooltip } from './TourTooltip';
 import {
   DEFAULT_BACKDROP_OPACITY,
   DEFAULT_SPRING_CONFIG,
 } from '../constants/defaults';
-
-export const TourContext = createContext<InternalTourContextType | null>(null);
 
 interface TourProviderProps {
   children: React.ReactNode;

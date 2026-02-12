@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { TourContext } from '../components/TourProvider';
+import { TourContext } from '../context/TourContext';
 
 export const useTour = () => {
   const context = useContext(TourContext);

@@ -1,5 +1,6 @@
 import type { WithSpringConfig, SharedValue } from 'react-native-reanimated';
 import React from 'react';
+import type { ViewStyle, TextStyle } from 'react-native';
 
 export interface TourStep {
   /**
@@ -45,6 +46,69 @@ export interface TourLabels {
   skip?: string;
 }
 
+export interface TooltipStyles {
+  /**
+   * Background color of the tooltip
+   */
+  backgroundColor?: string;
+  /**
+   * Border radius of the tooltip (for shape customization)
+   */
+  borderRadius?: number;
+  /**
+   * Text color for the title
+   */
+  titleColor?: string;
+  /**
+   * Text color for the description
+   */
+  descriptionColor?: string;
+  /**
+   * Background color for the primary button
+   */
+  primaryButtonColor?: string;
+  /**
+   * Text color for the primary button
+   */
+  primaryButtonTextColor?: string;
+  /**
+   * Border radius for the primary button
+   */
+  primaryButtonBorderRadius?: number;
+  /**
+   * Text color for the skip button
+   */
+  skipButtonTextColor?: string;
+  /**
+   * Custom style for the tooltip container
+   */
+  containerStyle?: ViewStyle;
+  /**
+   * Custom style for the title text
+   */
+  titleStyle?: TextStyle;
+  /**
+   * Custom style for the description text
+   */
+  descriptionStyle?: TextStyle;
+  /**
+   * Custom style for the primary button
+   */
+  primaryButtonStyle?: ViewStyle;
+  /**
+   * Custom style for the primary button text
+   */
+  primaryButtonTextStyle?: TextStyle;
+  /**
+   * Custom style for the skip button
+   */
+  skipButtonStyle?: ViewStyle;
+  /**
+   * Custom style for the skip button text
+   */
+  skipButtonTextStyle?: TextStyle;
+}
+
 export interface CardProps {
   step: TourStep;
   currentStepIndex: number;
@@ -79,6 +143,10 @@ export interface TourConfig {
    * Backdrop opacity. Default 0.5
    */
   backdropOpacity?: number;
+  /**
+   * Custom styles for the tooltip appearance
+   */
+  tooltipStyles?: TooltipStyles;
 }
 
 export interface TourContextType {

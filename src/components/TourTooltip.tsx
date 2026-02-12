@@ -13,10 +13,73 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 import { useTour } from '../hooks/useTour';
-import type { CardProps, InternalTourContextType } from '../types';
+import type {
+  CardProps,
+  InternalTourContextType,
+  TooltipStyles,
+} from '../types';
 import { DEFAULT_LABELS } from '../constants/defaults';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const getDynamicStyles = (tooltipStyles?: TooltipStyles) => {
+  const defaultStyles = {
+    backgroundColor: tooltipStyles?.backgroundColor || 'white',
+    borderRadius: tooltipStyles?.borderRadius || 12,
+    titleColor: tooltipStyles?.titleColor || '#000',
+    descriptionColor: tooltipStyles?.descriptionColor || '#444',
+    primaryButtonColor: tooltipStyles?.primaryButtonColor || '#007AFF',
+    primaryButtonTextColor: tooltipStyles?.primaryButtonTextColor || '#fff',
+    primaryButtonBorderRadius: tooltipStyles?.primaryButtonBorderRadius || 25,
+    skipButtonTextColor: tooltipStyles?.skipButtonTextColor || '#666',
+  };
+
+  return StyleSheet.create({
+    cardStyle: {
+      backgroundColor: defaultStyles.backgroundColor,
+      borderRadius: defaultStyles.borderRadius,
+      padding: 20,
+      minHeight: 120,
+      ...(tooltipStyles?.containerStyle || {}),
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: defaultStyles.titleColor,
+      flex: 1,
+      ...(tooltipStyles?.titleStyle || {}),
+    },
+    description: {
+      fontSize: 15,
+      color: defaultStyles.descriptionColor,
+      marginBottom: 20,
+      lineHeight: 22,
+      ...(tooltipStyles?.descriptionStyle || {}),
+    },
+    buttonPrimary: {
+      backgroundColor: defaultStyles.primaryButtonColor,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: defaultStyles.primaryButtonBorderRadius,
+      ...(tooltipStyles?.primaryButtonStyle || {}),
+    },
+    primaryButtonText: {
+      color: defaultStyles.primaryButtonTextColor,
+      fontWeight: 'bold',
+      fontSize: 14,
+      ...(tooltipStyles?.primaryButtonTextStyle || {}),
+    },
+    skipText: {
+      color: defaultStyles.skipButtonTextColor,
+      fontWeight: '600',
+      ...(tooltipStyles?.skipButtonTextStyle || {}),
+    },
+    buttonText: {
+      padding: 8,
+      ...(tooltipStyles?.skipButtonStyle || {}),
+    },
+  });
+};
 
 export const TourTooltip = memo(() => {
   const {
@@ -37,6 +100,11 @@ export const TourTooltip = memo(() => {
 
   const tooltipHeight = useSharedValue(150);
   const [tooltipWidth] = useState(280);
+
+  const dynamicStyles = useMemo(
+    () => getDynamicStyles(config?.tooltipStyles),
+    [config?.tooltipStyles]
+  );
 
   const orderedSteps = useMemo(() => {
     const keys = Object.keys(steps);
@@ -93,8 +161,7 @@ export const TourTooltip = memo(() => {
       width: tooltipWidth,
       left: clampedLeft,
       opacity: activeOpacity,
-      // Add explicit background here for Reanimated to treat it as a solid block layer
-      backgroundColor: 'white',
+      backgroundColor: config?.tooltipStyles?.backgroundColor || 'white',
       transform: [{ translateY: interpolate(activeOpacity, [0, 1], [10, 0]) }],
     };
 
@@ -155,28 +222,31 @@ export const TourTooltip = memo(() => {
 
   return (
     <AnimatedView
-      // Combined styles: Container (Shadows) + CardStyle (White BG) + TooltipStyle (Position/Opacity)
-      style={[styles.container, styles.cardStyle, tooltipStyle]}
+      style={[styles.container, dynamicStyles.cardStyle, tooltipStyle]}
       onLayout={handleTooltipLayout}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>{currentStepData.name || 'Step'}</Text>
+        <Text style={dynamicStyles.title}>
+          {currentStepData.name || 'Step'}
+        </Text>
         <Text style={styles.stepIndicator}>
           {currentIndex + 1} / {totalSteps}
         </Text>
       </View>
-      <Text style={styles.description}>{currentStepData.description}</Text>
+      <Text style={dynamicStyles.description}>
+        {currentStepData.description}
+      </Text>
 
       <View style={styles.footer}>
         {!isLast && (
-          <TouchableOpacity onPress={stop} style={styles.buttonText}>
-            <Text style={styles.skipText}>{labelSkip}</Text>
+          <TouchableOpacity onPress={stop} style={dynamicStyles.buttonText}>
+            <Text style={dynamicStyles.skipText}>{labelSkip}</Text>
           </TouchableOpacity>
         )}
         {isLast && <View style={styles.spacer} />}
 
-        <TouchableOpacity onPress={next} style={styles.buttonPrimary}>
-          <Text style={styles.primaryButtonText}>{labelNext}</Text>
+        <TouchableOpacity onPress={next} style={dynamicStyles.buttonPrimary}>
+          <Text style={dynamicStyles.primaryButtonText}>{labelNext}</Text>
         </TouchableOpacity>
       </View>
     </AnimatedView>
@@ -193,12 +263,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 999,
   },
-  cardStyle: {
-    backgroundColor: 'white', // Ensure this is solid white
-    borderRadius: 12,
-    padding: 20,
-    minHeight: 120,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -208,40 +272,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    flex: 1,
-  },
-  description: {
-    fontSize: 15,
-    color: '#444',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  buttonText: {
-    padding: 8,
-  },
-  skipText: {
-    color: '#666',
-    fontWeight: '600',
-  },
-  buttonPrimary: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   resetStyle: {
     backgroundColor: 'transparent',
