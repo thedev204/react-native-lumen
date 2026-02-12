@@ -317,7 +317,7 @@ export default function App() {
 #### Storage Support
 
 The library automatically detects and uses:
-- **MMKV v4** (`react-native-mmkv`) - Fastest, recommended
+- **MMKV v4** (`react-native-mmkv` ^4.0.0) - Fastest, recommended
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) - Fallback
 
 No additional setup required if either package is installed.

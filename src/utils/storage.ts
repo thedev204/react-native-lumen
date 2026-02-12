@@ -35,21 +35,21 @@ function tryGetMMKV(): StorageAdapter | null {
 
     const mmkvModule = require('react-native-mmkv');
 
-    // MMKV v4 exports MMKV class directly
-    if (mmkvModule?.MMKV) {
-      const MMKVClass = mmkvModule.MMKV;
+    // MMKV v4 exports createMMKV function
+    if (mmkvModule?.createMMKV) {
+      const createMMKV = mmkvModule.createMMKV;
       // Create a dedicated instance for tour storage
-      const storage = new MMKVClass({ id: 'react-native-lumen-tour' });
+      const storage = createMMKV({ id: 'react-native-lumen-tour' });
 
       if (
         typeof storage.getString === 'function' &&
         typeof storage.set === 'function' &&
-        typeof storage.delete === 'function'
+        typeof storage.remove === 'function'
       ) {
         return {
           getItem: (key: string) => storage.getString(key) ?? null,
           setItem: (key: string, value: string) => storage.set(key, value),
-          removeItem: (key: string) => storage.delete(key),
+          removeItem: (key: string) => storage.remove(key),
         };
       }
     }

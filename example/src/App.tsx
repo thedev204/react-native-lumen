@@ -21,7 +21,7 @@ const globalSpotlightStyle: SpotlightStyle = {
   glowRadius: 8,
 };
 
-// Persistence configuration - auto-detects MMKV v4 or AsyncStorage
+// Persistence configuration - auto-detects MMKV v4+ or AsyncStorage
 const persistenceConfig: TourPersistenceConfig = {
   enabled: true,
   tourId: 'lumen-example-tour-v1',
