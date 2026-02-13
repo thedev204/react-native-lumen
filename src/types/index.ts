@@ -111,6 +111,20 @@ export interface TourStep {
    */
   clickable?: boolean;
   /**
+   * If true, the skip button is hidden for this step (user must complete or press next).
+   * @default false
+   */
+  required?: boolean;
+  /**
+   * Controls whether the next/finish button is enabled.
+   * - `undefined`: No enforcement, next button always enabled (default).
+   * - `false`: Next button is disabled (grayed out, non-pressable).
+   * - `true`: Next button is enabled.
+   *
+   * Use this to gate progression until the user completes an action.
+   */
+  completed?: boolean;
+  /**
    * Per-step spotlight style overrides.
    * Merged with global spotlightStyle from TourConfig.
    */
@@ -130,6 +144,13 @@ export interface MeasureResult {
 }
 
 export type StepMap = Record<string, TourStep>;
+
+/**
+ * Steps order can be either:
+ * - A flat array of step keys (single-screen tour): `['bio', 'prompt', 'poll']`
+ * - A screen-grouped object (multi-screen tour): `{ ProfileSelf: ['bio', 'prompt'], HomeSwipe: ['filters'] }`
+ */
+export type StepsOrder = string[] | Record<string, string[]>;
 
 export interface TourLabels {
   next?: string;
@@ -211,6 +232,17 @@ export interface CardProps {
   isFirst: boolean;
   isLast: boolean;
   labels?: TourLabels;
+  /**
+   * Whether the step is required (skip button should be hidden).
+   */
+  required?: boolean;
+  /**
+   * Whether the step's completion condition is met.
+   * - `undefined`: No enforcement, next button always enabled.
+   * - `false`: Next button should be disabled.
+   * - `true`: Next button should be enabled.
+   */
+  completed?: boolean;
 }
 
 // ─── Persistence Types ───────────────────────────────────────────────────────
@@ -369,6 +401,12 @@ export interface TourContextType {
    * Only meaningful when persistence is enabled.
    */
   hasSavedProgress: boolean;
+  /**
+   * The full ordered list of step keys for this tour.
+   * Derived from stepsOrder prop or step registration order.
+   * Includes all steps across all screens (for multi-screen tours).
+   */
+  orderedStepKeys: string[];
 }
 
 export interface InternalTourContextType extends TourContextType {

@@ -31,4 +31,5 @@ export type {
   TourPersistenceConfig,
   TourContextType,
   StorageAdapter,
+  StepsOrder,
 } from './types';
