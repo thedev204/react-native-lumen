@@ -44,8 +44,15 @@ import { TourProvider } from 'react-native-lumen';
 
 export default function App() {
   return (
-    <TourProvider>
-      <YourAppContent />
+    <TourProvider
+      stepsOrder={['bio', 'prompt', 'poll']}
+      config={{
+      springConfig: SnappySpringConfig,
+      ..
+      .
+      // See config details below
+      >
+      <YourComponentThatNeedsTouring />
     </TourProvider>
   );
 }
@@ -118,6 +125,8 @@ Wrapper component to register an element as a tour step.
 Configuration object needed for `TourProvider`.
 
 ```tsx
+import { SnappySpringConfig, WigglySpringConfig } from 'react-native-lumen'
+
 interface TourConfig {
   /**
    * Animation configuration for the spotlight movement.
