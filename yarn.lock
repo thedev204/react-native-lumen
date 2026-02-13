@@ -4473,11 +4473,6 @@ fs-extra@^10.1.0:
 fs.realpath@^1.0.0:
   version "1.0.0"
 
-fsevents@^2.3.2:
-  version "2.3.3"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
-  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
-
 function-bind@^1.1.2:
   version "1.1.2"
 
@@ -5624,55 +5619,10 @@ lan-network@^0.1.6:
   resolved "https://registry.npmjs.org/lan-network/-/lan-network-0.1.7.tgz"
   integrity sha512-mnIlAEMu4OyEvUNdzco9xpuB9YVcPkQec+QsgycBCtPZvEqWPCDPfbAE4OJMdBBWpZWtpCn1xw9jJYlwjWI5zQ==
 
-lefthook-darwin-arm64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-darwin-arm64/-/lefthook-darwin-arm64-2.1.0.tgz"
-  integrity sha512-u2hjHLQXWSFfzO7ln2n/uEydSzfC9sc5cDC7tvKSuOdhvBwaJ0AQ7ZeuqqCQ4YfVIJfYOom1SVE9CBd10FVyig==
-
-lefthook-darwin-x64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-darwin-x64/-/lefthook-darwin-x64-2.1.0.tgz"
-  integrity sha512-zz5rcyrtOZpxon7uE+c0KC/o2ypJeLZql5CL0Y9oaTuECbmhfokm8glsGnyWstW/++PuMpZYYr/qsCJA5elxkQ==
-
-lefthook-freebsd-arm64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-freebsd-arm64/-/lefthook-freebsd-arm64-2.1.0.tgz"
-  integrity sha512-+mXNCNuFHNGYLrDqYWDeHH7kWCLCJFPpspx5PAAm+PD37PRMZJrTqDbaNK9qCghC1tdmT4/Lvilf/ewXHPlaKw==
-
-lefthook-freebsd-x64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-freebsd-x64/-/lefthook-freebsd-x64-2.1.0.tgz"
-  integrity sha512-+AU2HD7szuDsUdHue/E3OnF84B2ae/h7CGKpuIUHJntgoJ4kxf89oDvq2/xl8kDCn9cT76UUjgeZUgFYLRj+6Q==
-
-lefthook-linux-arm64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-linux-arm64/-/lefthook-linux-arm64-2.1.0.tgz"
-  integrity sha512-KM70eV1tsEib1/tk+3TFxIdH84EaYlIg5KTQWAg+LB1N23nTQ7lL4Dnh1je6f6KW4tf21nmoMUqsh0xvMkQk8Q==
-
 lefthook-linux-x64@2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/lefthook-linux-x64/-/lefthook-linux-x64-2.1.0.tgz"
   integrity sha512-6Bxmv+l7LiYq9W0IE6v2lmlRtBp6pisnlzhcouMGvH3rDwEGw11NAyRJZA3IPGEMAkIuhnlnVTUwAUzKomfJLg==
-
-lefthook-openbsd-arm64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-openbsd-arm64/-/lefthook-openbsd-arm64-2.1.0.tgz"
-  integrity sha512-ppJNK0bBSPLC8gqksRw5zI/0uLeMA5cK+hmZ4ofcuGNmdrN1dfl2Tx84fdeef0NcQY0ii9Y3j3icIKngIoid/g==
-
-lefthook-openbsd-x64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-openbsd-x64/-/lefthook-openbsd-x64-2.1.0.tgz"
-  integrity sha512-8k9lQsMYqQGu4spaQ8RNSOJidxIcOyfaoF2FPZhthtBfRV3cgVFGrsQ0hbIi5pvQRGUlCqYuCN79qauXHmnL3Q==
-
-lefthook-windows-arm64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-windows-arm64/-/lefthook-windows-arm64-2.1.0.tgz"
-  integrity sha512-0WN+grrxt9zP9NGRcztoPXcz25tteem91rfLWgQFab+50csJ47zldlsB7/eOS/eHG5mUg5g5NPR4XefnXtjOcQ==
-
-lefthook-windows-x64@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/lefthook-windows-x64/-/lefthook-windows-x64-2.1.0.tgz"
-  integrity sha512-XbO/5nAZQLpUn0tPpgCYfFBFJHnymSglQ73jD6wymNrR1j8I5EcXGlP6YcLhnZ83yzsdLC+gup+N6IqUeiyRdw==
 
 lefthook@^2.0.3:
   version "2.1.0"
@@ -5702,9 +5652,6 @@ lighthouse-logger@^1.0.0:
   dependencies:
     debug "^2.6.9"
     marky "^1.2.2"
-
-lightningcss-win32-x64-msvc@1.31.1:
-  version "1.31.1"
 
 lightningcss@^1.30.1:
   version "1.31.1"
@@ -6800,7 +6747,7 @@ react-native-is-edge-to-edge@^1.2.1:
 react-native-is-edge-to-edge@1.1.7:
   version "1.1.7"
 
-"react-native-lumen-example@file:/workspace/react-native-lumen/example":
+"react-native-lumen-example@file:/home/user/react-native-lumen/example":
   version "1.0.0"
   resolved "file:example"
   dependencies:

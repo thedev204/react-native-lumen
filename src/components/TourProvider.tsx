@@ -22,6 +22,7 @@ import type {
   InternalTourContextType,
   SpotlightStyle,
   StorageAdapter,
+  StepsOrder,
 } from '../types';
 import { TourContext } from '../context/TourContext';
 import { TourOverlay } from './TourOverlay';
@@ -117,9 +118,27 @@ function computeSpotlightGeometry(
 interface TourProviderProps {
   children: React.ReactNode;
   /**
-   * Optional custom steps order. If provided, the tour will follow this array of keys.
+   * Optional custom steps order. Supports two formats:
+   *
+   * **Flat array** (single-screen or simple multi-screen):
+   * ```
+   * stepsOrder={['bio', 'prompt', 'poll', 'filters', 'swipeableCards']}
+   * ```
+   *
+   * **Screen-grouped object** (multi-screen tours):
+   * ```
+   * stepsOrder={{
+   *   ProfileSelf: ['bio', 'prompt', 'poll'],
+   *   HomeSwipe: ['filters'],
+   *   SwipeableCards: ['swipeableCards'],
+   * }}
+   * ```
+   *
+   * When using the object format, steps are flattened in the order the screens appear.
+   * The tour automatically waits when advancing to a step on an unmounted screen,
+   * and resumes when that step's TourZone mounts.
    */
-  stepsOrder?: string[];
+  stepsOrder?: StepsOrder;
   /**
    * Initial overlay opacity. Default 0.5
    */
@@ -304,6 +323,12 @@ export const TourProvider: React.FC<TourProviderProps> = ({
 
   const registerStep = useCallback((step: TourStep) => {
     setSteps((prev) => ({ ...prev, [step.key]: step }));
+    // If this step was pending (waiting for cross-screen mount), activate it
+    if (pendingStepRef.current === step.key) {
+      pendingStepRef.current = null;
+      setCurrentStep(step.key);
+      // Overlay opacity will be set by updateStepLayout when measurement arrives
+    }
   }, []);
 
   const unregisterStep = useCallback((key: string) => {
@@ -382,8 +407,16 @@ export const TourProvider: React.FC<TourProviderProps> = ({
     ]
   );
 
+  // Flatten stepsOrder (supports both string[] and Record<string, string[]>)
+  const flatStepsOrder = useMemo<string[] | undefined>(() => {
+    if (!initialStepsOrder) return undefined;
+    if (Array.isArray(initialStepsOrder)) return initialStepsOrder;
+    // Object format: flatten values in key order
+    return Object.values(initialStepsOrder).flat();
+  }, [initialStepsOrder]);
+
   const getOrderedSteps = useCallback(() => {
-    if (initialStepsOrder) return initialStepsOrder;
+    if (flatStepsOrder) return flatStepsOrder;
     // If order property exists on steps, sort by it.
     const stepKeys = Object.keys(steps);
     if (stepKeys.length > 0) {
@@ -398,7 +431,12 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       }
     }
     return stepKeys;
-  }, [initialStepsOrder, steps]);
+  }, [flatStepsOrder, steps]);
+
+  // Pending step for cross-screen navigation
+  // When next/prev targets a step that isn't mounted yet, we store it here
+  // and resume when that step's TourZone registers.
+  const pendingStepRef = useRef<string | null>(null);
 
   // Save progress when step changes
   useEffect(() => {
@@ -438,7 +476,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
               await clearTourProgress(storageAdapter, tourId);
               setHasSavedProgress(false);
             } else if (ordered.includes(savedProgress.currentStepKey)) {
-              // Verify the saved step still exists
+              // Verify the saved step still exists in order
               targetStep = savedProgress.currentStepKey;
             }
           }
@@ -449,19 +487,21 @@ export const TourProvider: React.FC<TourProviderProps> = ({
 
       const firstStep = targetStep || ordered[0];
       if (firstStep) {
-        setCurrentStep(firstStep);
-        // We need to wait for layout if it's not ready?
-        // Assuming layout is ready since components are mounted.
-        // But if we start immediately on mount, might be tricky.
-        // For now assume standard flow.
-        // requestAnimationFrame to ensure state update propagates if needed,
-        // but simple call is usually fine.
-        setTimeout(() => animateToStep(firstStep), 0);
+        // Check if the target step is registered (mounted)
+        if (steps[firstStep]) {
+          setCurrentStep(firstStep);
+          setTimeout(() => animateToStep(firstStep), 0);
+        } else {
+          // Step not mounted yet (on a different screen) - set as pending
+          pendingStepRef.current = firstStep;
+          // Don't set currentStep or opacity - wait for TourZone to mount
+        }
       }
     },
     [
       getOrderedSteps,
       animateToStep,
+      steps,
       isPersistenceEnabled,
       storageAdapter,
       autoResume,
@@ -489,17 +529,42 @@ export const TourProvider: React.FC<TourProviderProps> = ({
 
   const next = useCallback(() => {
     if (!currentStep) return;
+
+    // Block navigation if current step has completed === false
+    const currentStepData = steps[currentStep];
+    if (currentStepData?.completed === false) {
+      return;
+    }
+
     const ordered = getOrderedSteps();
     const currentIndex = ordered.indexOf(currentStep);
     if (currentIndex < ordered.length - 1) {
-      const nextStep = ordered[currentIndex + 1];
-      if (nextStep) {
-        setCurrentStep(nextStep);
-        // Don't call animateToStep here - it uses cached measurements that may be stale
-        // after scroll. The useFrameCallback in TourZone will handle position tracking
-        // using measure() with correct screen coordinates (pageX/pageY).
-        // Just ensure the overlay is visible.
-        opacity.value = withTiming(backdropOpacity, { duration: 300 });
+      const nextStepKey = ordered[currentIndex + 1];
+      if (nextStepKey) {
+        // Check if the next step is registered (mounted)
+        if (steps[nextStepKey]) {
+          setCurrentStep(nextStepKey);
+          // Don't call animateToStep here - it uses cached measurements that may be stale
+          // after scroll. The useFrameCallback in TourZone will handle position tracking
+          // using measure() with correct screen coordinates (pageX/pageY).
+          // Just ensure the overlay is visible.
+          opacity.value = withTiming(backdropOpacity, { duration: 300 });
+        } else {
+          // Step not mounted yet (on a different screen) - set as pending
+          pendingStepRef.current = nextStepKey;
+          setCurrentStep(null);
+          opacity.value = withTiming(0, { duration: 300 });
+          // Persist pending step so it can be resumed
+          if (isPersistenceEnabled && storageAdapter) {
+            const stepIndex = ordered.indexOf(nextStepKey);
+            saveTourProgress(
+              storageAdapter,
+              tourId,
+              nextStepKey,
+              stepIndex
+            ).catch(() => {});
+          }
+        }
       } else {
         stop();
       }
@@ -514,6 +579,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
     }
   }, [
     currentStep,
+    steps,
     getOrderedSteps,
     stop,
     opacity,
@@ -529,14 +595,22 @@ export const TourProvider: React.FC<TourProviderProps> = ({
     const ordered = getOrderedSteps();
     const currentIndex = ordered.indexOf(currentStep);
     if (currentIndex > 0) {
-      const prevStep = ordered[currentIndex - 1];
-      if (prevStep) {
-        setCurrentStep(prevStep);
-        // Don't call animateToStep - let useFrameCallback handle position tracking
-        opacity.value = withTiming(backdropOpacity, { duration: 300 });
+      const prevStepKey = ordered[currentIndex - 1];
+      if (prevStepKey) {
+        // Check if the previous step is registered (mounted)
+        if (steps[prevStepKey]) {
+          setCurrentStep(prevStepKey);
+          // Don't call animateToStep - let useFrameCallback handle position tracking
+          opacity.value = withTiming(backdropOpacity, { duration: 300 });
+        } else {
+          // Step not mounted (on a different screen) - set as pending
+          pendingStepRef.current = prevStepKey;
+          setCurrentStep(null);
+          opacity.value = withTiming(0, { duration: 300 });
+        }
       }
     }
-  }, [currentStep, getOrderedSteps, opacity, backdropOpacity]);
+  }, [currentStep, steps, getOrderedSteps, opacity, backdropOpacity]);
 
   const scrollViewRef = useAnimatedRef<any>();
 
@@ -559,6 +633,9 @@ export const TourProvider: React.FC<TourProviderProps> = ({
     // Let's make `setScrollViewRef` actually do something if possible, or just document "Use exposed scrollViewRef".
     // For now, let's just return the `scrollViewRef` we created.
   }, []);
+
+  // Expose ordered step keys for tooltip and external use
+  const orderedStepKeys = useMemo(() => getOrderedSteps(), [getOrderedSteps]);
 
   const value = useMemo<InternalTourContextType>(
     () => ({
@@ -585,6 +662,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       currentSpotlightStyle,
       clearProgress,
       hasSavedProgress,
+      orderedStepKeys,
     }),
     [
       start,
@@ -610,6 +688,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       currentSpotlightStyle,
       clearProgress,
       hasSavedProgress,
+      orderedStepKeys,
     ]
   );
 

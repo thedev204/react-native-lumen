@@ -54,6 +54,18 @@ interface TourZoneProps {
   style?: StyleProp<ViewStyle>;
   /** If true, allows user interaction with the target element */
   clickable?: boolean;
+  /**
+   * If true, the skip button is hidden for this step.
+   * The user must press next (or complete the action) to proceed.
+   */
+  required?: boolean;
+  /**
+   * Controls whether the next/finish button is enabled for this step.
+   * - `undefined` (default): No enforcement, next button always enabled.
+   * - `false`: Next button is disabled until this becomes `true`.
+   * - `true`: Next button is enabled.
+   */
+  completed?: boolean;
   // ─── Spotlight Style Props ─────────────────────────────────────────────
   /** Uniform padding around the highlighted element */
   spotlightPadding?: number;
@@ -92,6 +104,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
   children,
   style,
   clickable,
+  required,
+  completed,
   // Spotlight style props
   spotlightPadding,
   spotlightPaddingTop,
@@ -452,7 +466,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
     ]
   );
 
-  // Register step on mount
+  // Register step on mount and when enforcement props change
   useEffect(() => {
     registerStep({
       key: stepKey,
@@ -460,6 +474,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
       description,
       order,
       clickable,
+      required,
+      completed,
       meta: { shape: resolvedSpotlightStyle.shape, borderRadius },
       spotlightStyle: resolvedSpotlightStyle,
       renderCustomCard,
@@ -474,6 +490,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
     registerStep,
     unregisterStep,
     clickable,
+    required,
+    completed,
     resolvedSpotlightStyle,
     renderCustomCard,
   ]);

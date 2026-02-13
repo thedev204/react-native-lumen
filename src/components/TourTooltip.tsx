@@ -94,6 +94,7 @@ export const TourTooltip = memo(() => {
     stop,
     opacity,
     config,
+    orderedStepKeys,
   } = useTour() as InternalTourContextType;
 
   const currentStepData = currentStep ? steps[currentStep] : null;
@@ -106,15 +107,8 @@ export const TourTooltip = memo(() => {
     [config?.tooltipStyles]
   );
 
-  const orderedSteps = useMemo(() => {
-    const keys = Object.keys(steps);
-    if (keys.length > 0) {
-      return keys.sort(
-        (a, b) => (steps[a]?.order ?? 0) - (steps[b]?.order ?? 0)
-      );
-    }
-    return keys;
-  }, [steps]);
+  // Use orderedStepKeys from context (consistent with TourProvider's ordering)
+  const orderedSteps = orderedStepKeys;
 
   const currentIndex = currentStep ? orderedSteps.indexOf(currentStep) : -1;
   const totalSteps = orderedSteps.length;
@@ -198,6 +192,8 @@ export const TourTooltip = memo(() => {
     isFirst,
     isLast,
     labels: config?.labels,
+    required: currentStepData.required,
+    completed: currentStepData.completed,
   };
 
   // Priority: Per-step custom card > Global custom card > Default card
@@ -240,6 +236,9 @@ export const TourTooltip = memo(() => {
   const labelNext = isLast ? labels.finish : labels.next;
   const labelSkip = labels.skip;
 
+  const isRequired = currentStepData.required === true;
+  const isNextDisabled = currentStepData.completed === false;
+
   return (
     <AnimatedView
       style={[styles.container, dynamicStyles.cardStyle, tooltipStyle]}
@@ -258,15 +257,29 @@ export const TourTooltip = memo(() => {
       </Text>
 
       <View style={styles.footer}>
-        {!isLast && (
+        {!isLast && !isRequired && (
           <TouchableOpacity onPress={stop} style={dynamicStyles.buttonText}>
             <Text style={dynamicStyles.skipText}>{labelSkip}</Text>
           </TouchableOpacity>
         )}
-        {isLast && <View style={styles.spacer} />}
+        {(isLast || isRequired) && <View style={styles.spacer} />}
 
-        <TouchableOpacity onPress={next} style={dynamicStyles.buttonPrimary}>
-          <Text style={dynamicStyles.primaryButtonText}>{labelNext}</Text>
+        <TouchableOpacity
+          onPress={isNextDisabled ? undefined : next}
+          disabled={isNextDisabled}
+          style={[
+            dynamicStyles.buttonPrimary,
+            isNextDisabled && styles.disabledButton,
+          ]}
+        >
+          <Text
+            style={[
+              dynamicStyles.primaryButtonText,
+              isNextDisabled && styles.disabledButtonText,
+            ]}
+          >
+            {labelNext}
+          </Text>
         </TouchableOpacity>
       </View>
     </AnimatedView>
@@ -306,5 +319,11 @@ const styles = StyleSheet.create({
   },
   spacer: {
     width: 10,
+  },
+  disabledButton: {
+    opacity: 0.4,
+  },
+  disabledButtonText: {
+    opacity: 0.7,
   },
 });

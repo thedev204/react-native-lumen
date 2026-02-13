@@ -9,5 +9,5 @@ export { TourTooltip } from './components/TourTooltip';
 export * from './constants/defaults';
 export * from './constants/animations';
 export { detectStorage, clearStorageCache, type StorageType, } from './utils/storage';
-export type { SpotlightStyle, SpotlightShape, TourStep, CardProps, TourConfig, TourLabels, TooltipStyles, TourPersistenceConfig, TourContextType, StorageAdapter, } from './types';
+export type { SpotlightStyle, SpotlightShape, TourStep, CardProps, TourConfig, TourLabels, TooltipStyles, TourPersistenceConfig, TourContextType, StorageAdapter, StepsOrder, } from './types';
 //# sourceMappingURL=index.d.ts.map
