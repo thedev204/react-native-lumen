@@ -1,857 +1,475 @@
-import { StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
+﻿import React from 'react';
+import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { TourZone, useTour, useTourScrollView } from 'react-native-lumen';
 import {
-  User,
-  BarChart2,
+  Bell,
   Plus,
-  Info,
-  Users,
-  Tag,
-  MessageSquare,
-  BarChart3,
-  Edit3,
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
 } from 'lucide-react-native';
 import { tourSteps } from './data/tourSteps';
 import Animated from 'react-native-reanimated';
-import { useState } from 'react';
 
-const Card = ({
-  title,
-  icon: Icon,
-  color,
-}: {
-  title: string;
-  icon: any;
-  color: string;
-}) => (
-  <View style={[styles.card, { backgroundColor: color }]}>
-    <Icon color="white" size={32} />
-    <Text style={styles.cardTitle}>{title}</Text>
-  </View>
-);
+// --- Mock Data ---
+const RECENT_ACTIVITY = [
+  {
+    id: '1',
+    title: 'Design System Update',
+    time: '2h ago',
+    color: '#FF6B6B',
+    icon: '🎨',
+  },
+  {
+    id: '2',
+    title: 'New Feature Launch',
+    time: '4h ago',
+    color: '#4ECDC4',
+    icon: '🚀',
+  },
+];
 
+const FEED_POSTS = [
+  {
+    id: '1',
+    author: 'Sarah Jenkins',
+    role: 'Product Designer',
+    avatar: 'https://i.pravatar.cc/150?u=sarah',
+    content:
+      'Just published the new design system guidelines! Check them out and let me know what you think. 🎨✨',
+    likes: 24,
+    comments: 5,
+    time: '2 hours ago',
+  },
+  {
+    id: '2',
+    author: 'Alex Chen',
+    role: 'Frontend Engineer',
+    avatar: 'https://i.pravatar.cc/150?u=alex',
+    content:
+      'Finally merged the performance improvements PR. The app should feel much snappier now! 🚀',
+    likes: 42,
+    comments: 12,
+    time: '4 hours ago',
+  },
+];
+
+// --- Main Screen ---
 export const Home = () => {
-  const { start, hasSavedProgress, clearProgress } = useTour();
-  // Use the new useTourScrollView hook for cleaner scroll view integration
   const { scrollViewProps } = useTourScrollView();
-  const [bio, setBio] = useState(
-    'Passionate developer with 5+ years of experience in React Native and mobile app development. Love creating intuitive user experiences!'
-  );
 
   return (
-    <Animated.ScrollView
-      {...scrollViewProps}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TourZone
-            stepKey={tourSteps.welcome.key}
-            name={tourSteps.welcome.name}
-            order={tourSteps.welcome.order}
-            description={tourSteps.welcome.description}
-            borderRadius={12}
-          >
-            <View style={styles.welcomeBanner}>
-              <Text style={styles.welcomeText}>Hello, User! 👋</Text>
-              <Text style={styles.subtitle}>
-                Welcome to the enhanced Lumen tour example.
-              </Text>
-            </View>
-          </TourZone>
-        </View>
+    <View style={styles.container}>
+      <Animated.ScrollView
+        {...scrollViewProps}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Header />
+        <WelcomeBanner />
+        <ActivityList />
 
-        {/* Enhanced Profile Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
-
-          {/* Profile Header - demonstrating per-zone spotlight props */}
-          <TourZone
-            stepKey={tourSteps.profile.key}
-            name={tourSteps.profile.name}
-            order={tourSteps.profile.order}
-            description={tourSteps.profile.description}
-            borderRadius={16}
-            style={styles.profileCard}
-            // Per-zone spotlight customization
-            spotlightGlowColor="#6C5CE7"
-            spotlightBorderColor="#6C5CE7"
-            spotlightPadding={12}
-          >
-            <View style={styles.profileHeader}>
-              <View style={styles.avatarLarge}>
-                <User color="white" size={40} />
-              </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>John Doe</Text>
-                <Text style={styles.profileRole}>Senior Developer</Text>
-              </View>
-              <Pressable style={styles.editButton}>
-                <Edit3 color="#6C5CE7" size={20} />
-              </Pressable>
-            </View>
-          </TourZone>
-
-          {/* Bio Section with Input */}
-          <TourZone
-            stepKey={tourSteps.bioInput.key}
-            name={tourSteps.bioInput.name}
-            order={tourSteps.bioInput.order}
-            description={tourSteps.bioInput.description}
-            borderRadius={12}
-            style={styles.bioCard}
-          >
-            <Text style={styles.bioLabel}>Bio</Text>
-            <TextInput
-              style={styles.bioInput}
-              value={bio}
-              onChangeText={setBio}
-              placeholder="Tell us about yourself..."
-              multiline
-              numberOfLines={4}
-            />
-            <Text style={styles.charCount}>{bio.length}/200 characters</Text>
-          </TourZone>
-
-          {/* Poll Section */}
-          <TourZone
-            stepKey={tourSteps.pollSection.key}
-            name={tourSteps.pollSection.name}
-            order={tourSteps.pollSection.order}
-            description={tourSteps.pollSection.description}
-            borderRadius={16}
-            style={styles.pollCard}
-          >
-            <View style={styles.pollHeader}>
-              <MessageSquare color="#6C5CE7" size={20} />
-              <Text style={styles.pollTitle}>Quick Poll</Text>
-            </View>
-            <Text style={styles.pollQuestion}>
-              What's your favorite React Native feature?
-            </Text>
-            <View style={styles.pollOptions}>
-              {['Performance', 'Animations', 'Community', 'Hot Reload'].map(
-                (option, index) => (
-                  <Pressable
-                    key={option}
-                    style={[
-                      styles.pollOption,
-                      index === 0 && styles.pollOptionSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.pollOptionText,
-                        index === 0 && styles.pollOptionTextSelected,
-                      ]}
-                    >
-                      {option}
-                    </Text>
-                  </Pressable>
-                )
-              )}
-            </View>
-            <Text style={styles.pollVotes}>245 votes • 2 days left</Text>
-          </TourZone>
-
-          {/* Prompt Section */}
-          <TourZone
-            stepKey={tourSteps.promptSection.key}
-            name={tourSteps.promptSection.name}
-            order={tourSteps.promptSection.order}
-            description={tourSteps.promptSection.description}
-            borderRadius={16}
-            style={styles.promptCard}
-          >
-            <View style={styles.promptHeader}>
-              <BarChart3 color="#FF6B6B" size={20} />
-              <Text style={styles.promptTitle}>Daily Prompt</Text>
-            </View>
-            <Text style={styles.promptQuestion}>
-              What's the best piece of advice you've received in your career?
-            </Text>
-            <Pressable style={styles.promptButton}>
-              <Text style={styles.promptButtonText}>Share Your Thoughts</Text>
-            </Pressable>
-          </TourZone>
+          <Text style={styles.sectionTitle}>Your Feed</Text>
+          <View style={styles.postContainer}>
+            <TourZone
+              key={0}
+              stepKey={tourSteps.post.key}
+              name={tourSteps.post.name}
+              order={tourSteps.post.order}
+              description={tourSteps.post.description}
+              borderRadius={16}
+            >
+              <FeedPost post={FEED_POSTS[0]!} />
+            </TourZone>
+            <FeedPost post={FEED_POSTS[1]!} />
+          </View>
         </View>
 
-        <View style={styles.grid}>
-          <TourZone
-            stepKey={tourSteps.stats.key}
-            name={tourSteps.stats.name}
-            order={tourSteps.stats.order}
-            description={tourSteps.stats.description}
-            borderRadius={16}
-            style={styles.container}
-          >
-            <Card title="Stats" icon={BarChart2} color="#4ECDC4" />
-          </TourZone>
-        </View>
-      </View>
+        {/* Bottom padding for FAB */}
+        <View style={{ height: 80 }} />
+      </Animated.ScrollView>
 
-      <View style={styles.actionContainer}>
-        {/* Circle spotlight shape for FAB */}
+      {/* Target 4: Floating Action Button */}
+      <View style={styles.fabContainer}>
         <TourZone
-          stepKey={tourSteps.action.key}
-          name={tourSteps.action.name}
-          order={tourSteps.action.order}
-          description={tourSteps.action.description}
-          borderRadius={30}
-          spotlightShape="circle"
-          spotlightGlowColor="#6C5CE7"
-          spotlightGlowOpacity={0.6}
-          spotlightGlowRadius={16}
+          stepKey={tourSteps.fab.key}
+          name={tourSteps.fab.name}
+          order={tourSteps.fab.order}
+          description={tourSteps.fab.description}
+          shape="circle"
         >
-          <Pressable style={styles.fab} onPress={() => console.log('Action')}>
-            <Plus color="white" size={28} />
-          </Pressable>
-        </TourZone>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Team Members</Text>
-        {/* Pill spotlight shape for avatar row */}
-        <TourZone
-          stepKey={tourSteps.users.key}
-          name={tourSteps.users.name}
-          order={tourSteps.users.order}
-          description={tourSteps.users.description}
-          spotlightShape="pill"
-          borderRadius={24}
-          spotlightPadding={8}
-        >
-          <View style={styles.avatarRow}>
-            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.avatar,
-                  {
-                    backgroundColor: `rgba(108, 92, 231, ${0.4 + i * 0.15})`,
-                    marginLeft: i === 1 ? 0 : -10,
-                  },
-                ]}
-              >
-                <Users color="white" size={20} />
-              </View>
-            ))}
-          </View>
-        </TourZone>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
-        {/* Pill shape with blue accent */}
-        <TourZone
-          stepKey={tourSteps.tags.key}
-          name={tourSteps.tags.name}
-          order={tourSteps.tags.order}
-          description={tourSteps.tags.description}
-          borderRadius={20}
-          spotlightShape="pill"
-          spotlightBorderColor="#0984e3"
-          spotlightGlowColor="#0984e3"
-        >
-          <View style={styles.tagContainer}>
-            {['Design', 'Product', 'Marketing'].map((tag, i) => (
-              <View
-                key={tag}
-                style={[
-                  styles.tag,
-                  { backgroundColor: i % 2 === 0 ? '#0984e3' : '#00b894' },
-                ]}
-              >
-                <Tag color="white" size={14} />
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-        </TourZone>
-      </View>
-
-      <View style={styles.grid}>
-        <TourZone
-          stepKey={tourSteps.wallet.key}
-          description={tourSteps.wallet.description}
-          order={tourSteps.wallet.order}
-          borderRadius={16}
-          style={styles.container}
-        >
-          <Card title="Wallet" icon={User} color="#6b95ff" />
-        </TourZone>
-
-        <TourZone
-          stepKey={tourSteps.products.key}
-          description={tourSteps.products.description}
-          order={tourSteps.products.order}
-          borderRadius={16}
-          style={styles.container}
-        >
-          <Card title="Products" icon={BarChart2} color="#c24ecd" />
-        </TourZone>
-      </View>
-
-      <View style={styles.infoContainer}>
-        <Info color="#888" size={20} />
-        <Text style={styles.infoText}>
-          Tap "Start Enhanced Tour" to begin the tutorial with interactive
-          elements!
-        </Text>
-      </View>
-
-      {/* Advanced Features Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Advanced Features</Text>
-
-        {/* Settings with Toggle */}
-        <TourZone
-          stepKey={tourSteps.settings.key}
-          name={tourSteps.settings.name}
-          order={tourSteps.settings.order}
-          description={tourSteps.settings.description}
-          borderRadius={16}
-          style={styles.featureCard}
-        >
-          <View style={styles.featureHeader}>
-            <Text style={styles.featureTitle}>Settings</Text>
-            <Pressable style={styles.toggleButton}>
-              <View style={[styles.toggleTrack, styles.toggleActive]}>
-                <View style={styles.toggleThumb} />
-              </View>
-            </Pressable>
-          </View>
-          <Text style={styles.featureDescription}>
-            Enable dark mode, notifications, and more
-          </Text>
-        </TourZone>
-
-        {/* Notifications with Badge */}
-        <TourZone
-          stepKey={tourSteps.notifications.key}
-          name={tourSteps.notifications.name}
-          order={tourSteps.notifications.order}
-          description={tourSteps.notifications.description}
-          borderRadius={16}
-          style={styles.featureCard}
-        >
-          <View style={styles.featureHeader}>
-            <Text style={styles.featureTitle}>Notifications</Text>
-            <View style={styles.notificationBadge}>
-              <Text style={styles.badgeText}>3</Text>
-            </View>
-          </View>
-          <Text style={styles.featureDescription}>
-            You have 3 new notifications
-          </Text>
-        </TourZone>
-
-        {/* Search with Input */}
-        <TourZone
-          stepKey={tourSteps.search.key}
-          name={tourSteps.search.name}
-          order={tourSteps.search.order}
-          description={tourSteps.search.description}
-          borderRadius={16}
-          style={styles.featureCard}
-        >
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for anything..."
-              placeholderTextColor="#999"
-            />
-            <Pressable style={styles.searchButton}>
-              <Text style={styles.searchButtonText}>🔍</Text>
-            </Pressable>
-          </View>
-        </TourZone>
-
-        {/* Help with Progress */}
-        <TourZone
-          stepKey={tourSteps.help.key}
-          name={tourSteps.help.name}
-          order={tourSteps.help.order}
-          description={tourSteps.help.description}
-          borderRadius={16}
-          style={styles.featureCard}
-        >
-          <View style={styles.helpContainer}>
-            <Text style={styles.featureTitle}>Help & Support</Text>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: '75%' }]} />
-            </View>
-            <Text style={styles.progressText}>Tour Progress: 75% Complete</Text>
-          </View>
-        </TourZone>
-      </View>
-
-      {/* Show different button based on saved progress */}
-      {hasSavedProgress ? (
-        <View style={styles.buttonRow}>
           <Pressable
-            style={[styles.startButton, styles.resumeButton]}
-            onPress={() => start()} // Will auto-resume from saved step
+            style={styles.fab}
+            onPress={() => console.log('FAB Pressed')}
           >
-            <Text style={styles.startButtonText}>Resume Tour</Text>
+            <Plus color="white" size={24} />
           </Pressable>
-          <Pressable
-            style={[styles.startButton, styles.restartButton]}
-            onPress={async () => {
-              await clearProgress();
-              start(tourSteps.welcome.key);
-            }}
-          >
-            <Text style={styles.startButtonText}>Restart</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <Pressable
-          style={styles.startButton}
-          onPress={() => start(tourSteps.welcome.key)}
-        >
-          <Text style={styles.startButtonText}>Start Enhanced Tour</Text>
-        </Pressable>
-      )}
-    </Animated.ScrollView>
+        </TourZone>
+      </View>
+    </View>
   );
 };
 
+// --- Components ---
+const Header = () => {
+  const { start } = useTour();
+  return (
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.headerGreeting}>Good morning,</Text>
+        <Text style={styles.headerTitle}>Alex 👋</Text>
+      </View>
+
+      {/* Target 1: Header Icon */}
+      <TourZone
+        stepKey={tourSteps.headerIcon.key}
+        name={tourSteps.headerIcon.name}
+        order={tourSteps.headerIcon.order}
+        description={tourSteps.headerIcon.description}
+        shape="circle"
+      >
+        <Pressable
+          style={styles.iconButton}
+          onPress={() => start(tourSteps.headerIcon.key)}
+        >
+          <Bell color="#2D3436" size={24} />
+          <View style={styles.notificationBadge} />
+        </Pressable>
+      </TourZone>
+    </View>
+  );
+};
+
+const WelcomeBanner = () => {
+  const { start } = useTour();
+  return (
+    /* Target 2: Welcome Banner */
+    <TourZone
+      stepKey={tourSteps.welcomeBanner.key}
+      name={tourSteps.welcomeBanner.name}
+      order={tourSteps.welcomeBanner.order}
+      description={tourSteps.welcomeBanner.description}
+      borderRadius={16}
+      style={styles.bannerContainer}
+    >
+      <View style={styles.banner}>
+        <View style={styles.bannerContent}>
+          <Text style={styles.bannerTitle}>Ready to explore?</Text>
+          <Text style={styles.bannerText}>
+            Take a quick tour to discover all the new features we've added to
+            your dashboard.
+          </Text>
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() => start(tourSteps.headerIcon.key)}
+          >
+            <Text style={styles.primaryButtonText}>Start Tour</Text>
+          </Pressable>
+        </View>
+      </View>
+    </TourZone>
+  );
+};
+
+const ActivityList = () => {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Recent Activity</Text>
+      <View style={styles.activityContainer}>
+        {RECENT_ACTIVITY.map((item, index) => {
+          const cardContent = (
+            <View
+              style={[
+                styles.activityCard,
+                { borderTopColor: item.color, borderTopWidth: 4 },
+              ]}
+            >
+              <Text style={styles.activityIcon}>{item.icon}</Text>
+              <Text style={styles.activityCardTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <Text style={styles.activityTime}>{item.time}</Text>
+            </View>
+          );
+
+          // Target 3: Wrap the first item in the list
+          if (index === 0) {
+            return (
+              <TourZone
+                key={item.id}
+                stepKey={tourSteps.designSystem.key}
+                name={tourSteps.designSystem.name}
+                order={tourSteps.designSystem.order}
+                description={tourSteps.designSystem.description}
+                borderRadius={12}
+              >
+                {cardContent}
+              </TourZone>
+            );
+          }
+
+          // Target 4: Wrap the second item in the list
+          if (index === 1) {
+            return (
+              <TourZone
+                key={item.id}
+                stepKey={tourSteps.newFeature.key}
+                name={tourSteps.newFeature.name}
+                order={tourSteps.newFeature.order}
+                description={tourSteps.newFeature.description}
+                borderRadius={12}
+              >
+                {cardContent}
+              </TourZone>
+            );
+          }
+
+          return <React.Fragment key={item.id}>{cardContent}</React.Fragment>;
+        })}
+      </View>
+    </View>
+  );
+};
+
+const FeedPost = ({ post }: { post: (typeof FEED_POSTS)[0] }) => (
+  <View style={styles.postCard}>
+    <View style={styles.postHeader}>
+      <Image source={{ uri: post.avatar }} style={styles.postAvatar} />
+      <View style={styles.postAuthorInfo}>
+        <Text style={styles.postAuthorName}>{post.author}</Text>
+        <Text style={styles.postAuthorRole}>
+          {post.role} {post.time}
+        </Text>
+      </View>
+      <Pressable style={styles.moreButton}>
+        <MoreHorizontal color="#636E72" size={20} />
+      </Pressable>
+    </View>
+    <Text style={styles.postContent}>{post.content}</Text>
+    <View style={styles.postActions}>
+      <Pressable style={styles.actionButton}>
+        <Heart color="#636E72" size={20} />
+        <Text style={styles.actionText}>{post.likes}</Text>
+      </Pressable>
+      <Pressable style={styles.actionButton}>
+        <MessageCircle color="#636E72" size={20} />
+        <Text style={styles.actionText}>{post.comments}</Text>
+      </Pressable>
+      <Pressable style={styles.actionButton}>
+        <Share2 color="#636E72" size={20} />
+      </Pressable>
+    </View>
+  </View>
+);
+
+// --- Styles ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 100,
   },
   header: {
-    marginBottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    marginTop: 8,
   },
-  welcomeBanner: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+  headerGreeting: {
+    fontSize: 14,
+    color: '#636E72',
+    marginBottom: 4,
   },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: '800',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#2D3436',
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 0,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF6B6B',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  bannerContainer: { marginBottom: 32 },
+  banner: {
+    backgroundColor: '#6C5CE7',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 0,
+  },
+  bannerContent: {
+    alignItems: 'flex-start',
+  },
+  bannerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
+  bannerText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  primaryButton: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  primaryButtonText: {
+    color: '#6C5CE7',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D3436',
+    marginBottom: 16,
+  },
+  activityContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  activityCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 0,
+  },
+  activityIcon: {
+    fontSize: 24,
+    marginBottom: 12,
+  },
+  activityCardTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2D3436',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  activityTime: {
+    fontSize: 12,
     color: '#636E72',
   },
-  grid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 40,
+  postContainer: {
+    gap: 22,
   },
-  card: {
-    flex: 1,
-    height: 140,
+  postCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
-    justifyContent: 'space-between',
+    padding: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 0,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'white',
-  },
-  actionContainer: {
+  postHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 12,
+  },
+  postAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  postAuthorInfo: {
+    flex: 1,
+  },
+  postAuthorName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2D3436',
+    marginBottom: 2,
+  },
+  postAuthorRole: {
+    fontSize: 13,
+    color: '#636E72',
+  },
+  moreButton: {
+    padding: 4,
+  },
+  postContent: {
+    fontSize: 15,
+    color: '#2D3436',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  postActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F2F6',
+    paddingTop: 12,
+    gap: 24,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionText: {
+    fontSize: 14,
+    color: '#636E72',
+    fontWeight: '500',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
   },
   fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#6C5CE7',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  section: {
-    marginBottom: 40,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3436',
-    marginBottom: 16,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    width: '100%',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-  },
-  tagText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  infoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
-  },
-  infoText: {
-    color: '#888',
-    fontSize: 14,
-  },
-  startButton: {
-    backgroundColor: '#2D3436',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  startButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  resumeButton: {
-    flex: 1,
-    backgroundColor: '#6C5CE7',
-  },
-  restartButton: {
-    flex: 1,
-    backgroundColor: '#636E72',
-  },
-  // Enhanced Profile Styles
-  profileCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  avatarLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#6C5CE7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2D3436',
-    marginBottom: 4,
-  },
-  profileRole: {
-    fontSize: 14,
-    color: '#636E72',
-  },
-  editButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-  },
-  // Bio Styles
-  bioCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  bioLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3436',
-    marginBottom: 12,
-  },
-  bioInput: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#2D3436',
-    minHeight: 80,
-  },
-  charCount: {
-    fontSize: 12,
-    color: '#636E72',
-    textAlign: 'right',
-    marginTop: 8,
-  },
-  // Poll Styles
-  pollCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  pollHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  pollTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3436',
-  },
-  pollQuestion: {
-    fontSize: 14,
-    color: '#636E72',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  pollOptions: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  pollOption: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  pollOptionSelected: {
-    backgroundColor: '#6C5CE7',
-    borderColor: '#6C5CE7',
-  },
-  pollOptionText: {
-    fontSize: 12,
-    color: '#636E72',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  pollOptionTextSelected: {
-    color: '#fff',
-  },
-  pollVotes: {
-    fontSize: 12,
-    color: '#636E72',
-  },
-  // Prompt Styles
-  promptCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  promptHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  promptTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2D3436',
-  },
-  promptQuestion: {
-    fontSize: 14,
-    color: '#636E72',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  promptButton: {
-    backgroundColor: '#FF6B6B',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  promptButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  // Advanced Feature Styles
-  featureCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  featureHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  featureTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2D3436',
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: '#636E72',
-    lineHeight: 20,
-  },
-  // Toggle Switch Styles
-  toggleButton: {
-    padding: 4,
-  },
-  toggleTrack: {
-    width: 48,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#e0e0e0',
-    justifyContent: 'center',
-  },
-  toggleActive: {
-    backgroundColor: '#6C5CE7',
-  },
-  toggleThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-    alignSelf: 'flex-end',
-  },
-  // Notification Badge Styles
-  notificationBadge: {
-    backgroundColor: '#FF6B6B',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  // Search Styles
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#2D3436',
-  },
-  searchButton: {
-    marginLeft: 12,
-  },
-  searchButtonText: {
-    fontSize: 18,
-  },
-  // Progress Bar Styles
-  helpContainer: {
-    flex: 1,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    marginVertical: 12,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#6C5CE7',
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#636E72',
-    textAlign: 'center',
+    shadowRadius: 12,
+    elevation: 0,
   },
 });

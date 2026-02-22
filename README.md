@@ -7,13 +7,15 @@
 ## Demo
 
 <p>
-  <img src="./assets/showcase.gif" width="220" alt="App Tour Demo" />
+  <img src="./assets/showcase1.gif" width="220" alt="App Tour Demo" />
+  <img src="./assets/showcase2.gif" width="220" alt="App Tour Demo" />
 </p>
 
 ## Features
 
 - ⚡ **High Performance**: Built with `react-native-reanimated` worklets for 60fps animations.
 - 🎨 **Fully Customizable**: Custom Renderers for tooltips, customizable shapes, and backdrops.
+- 🌟 **Glow Effects**: Beautiful, customizable glow effects around your highlighted elements.
 - 📱 **Expo Compatible**: Works seamlessly with Expo and bare React Native projects.
 - 🤸 **Smooth Transitions**: Fluid morphing animations between steps.
 - ✨ **Animation Presets**: Ships with beautiful bouncy, gentle, and snappy spring presets.
@@ -39,6 +41,8 @@ npm install react-native-lumen react-native-reanimated react-native-svg react-na
 
 ## Usage
 
+> **Note**: For a complete, running example showcasing different configurations and styles, check out the `example` folder in this repository.
+
 1.  **Wrap your App with `TourProvider`**:
 
 ```tsx
@@ -50,6 +54,7 @@ export default function App() {
       stepsOrder={['bio', 'prompt', 'poll']}
       config={{
         springConfig: SnappySpringConfig,
+        enableGlow: true, // Enable the glow effect globally
         // See config details below
       }}
     >
@@ -92,47 +97,55 @@ const MyComponent = () => {
 
 The main context provider. Place this at the root of your application.
 
-| Prop              | Type                                    | Default     | Description                                              |
-| :---------------- | :-------------------------------------- | :---------- | :------------------------------------------------------- |
-| `children`        | `React.ReactNode`                       | Required    | Application content.                                     |
-| `stepsOrder`      | `string[] \| Record<string, string[]>`  | `undefined` | Step ordering. Flat array or screen-grouped object.      |
-| `backdropOpacity` | `number`                                | `0.5`       | Opacity of the dark background overlay (0-1).            |
-| `config`          | `TourConfig`                            | `undefined` | Global configuration options.                            |
+| Prop              | Type                                   | Default     | Description                                           |
+| :---------------- | :------------------------------------- | :---------- | :---------------------------------------------------- |
+| `children`        | `React.ReactNode`                      | Required    | Application content.                                  |
+| `stepsOrder`      | `string[] \| Record<string, string[]>` | `undefined` | Step ordering. Flat array or screen-grouped object.   |
+| `backdropOpacity` | `number`                               | `0.5`       | Opacity of the dark background overlay (0-1).         |
+| `config`          | `TourConfig`                           | `undefined` | Global configuration options, including `enableGlow`. |
 
 ### `TourZone`
 
-Wrapper component to register an element as a tour step.
+Wrapper component to register an element as a tour step. All styling props can also be passed via the `zoneStyle` object prop.
 
-| Prop           | Type                 | Default     | Description                                     |
-| :------------- | :------------------- | :---------- | :---------------------------------------------- |
-| `stepKey`      | `string`             | Required    | Unique identifier for the step.                 |
-| `name`         | `string`             | `undefined` | Title of the step.                              |
-| `description`  | `string`             | Required    | Description text shown in the tooltip.          |
-| `order`        | `number`             | `undefined` | Order of appearance (if `stepsOrder` not used). |
-| `spotlightShape` | `'rounded-rect' \| 'circle' \| 'pill'` | `'rounded-rect'` | Shape of the spotlight cutout. |
-| `borderRadius` | `number`             | `10`        | Border radius of the spotlight.                 |
-| `clickable`    | `boolean`            | `false`     | If `true`, the step remains interactive.        |
-| `required`     | `boolean`            | `false`     | If `true`, hides the skip button for this step. |
-| `completed`    | `boolean`            | `undefined` | If `false`, disables the next button until `true`. |
-| `style`        | `ViewStyle`          | `undefined` | Style for the wrapping container.               |
-| `spotlightPadding` | `number`         | `8`         | Uniform padding around the spotlight.           |
-| `spotlightBorderWidth` | `number`     | `2`         | Width of the spotlight border/glow ring.        |
-| `spotlightBorderColor` | `string`     | `'#007AFF'` | Color of the spotlight border.                  |
-| `spotlightGlowColor` | `string`       | `'#007AFF'` | Color of the outer glow effect.                 |
-| `spotlightGlowOpacity` | `number`     | `0.4`       | Opacity of the glow effect (0-1).               |
-| `spotlightStyle` | `SpotlightStyle`   | `undefined` | Complete spotlight style object.                |
-| `renderCustomCard` | `(props) => ReactNode` | `undefined` | Custom render function for this step's card. |
+| Prop                 | Type                                   | Default          | Description                                          |
+| :------------------- | :------------------------------------- | :--------------- | :--------------------------------------------------- |
+| `stepKey`            | `string`                               | Required         | Unique identifier for the step.                      |
+| `name`               | `string`                               | `undefined`      | Title of the step.                                   |
+| `description`        | `string`                               | Required         | Description text shown in the tooltip.               |
+| `order`              | `number`                               | `undefined`      | Order of appearance (if `stepsOrder` not used).      |
+| `shape`              | `'rounded-rect' \| 'circle' \| 'pill'` | `'rounded-rect'` | Shape of the zone cutout.                            |
+| `borderRadius`       | `number`                               | `10`             | Border radius of the zone (for rounded-rect).        |
+| `clickable`          | `boolean`                              | `false`          | If `true`, the step remains interactive.             |
+| `preventInteraction` | `boolean`                              | `undefined`      | Overrides global `preventInteraction` for this step. |
+| `required`           | `boolean`                              | `false`          | If `true`, hides the skip button for this step.      |
+| `completed`          | `boolean`                              | `undefined`      | If `false`, disables the next button until `true`.   |
+| `style`              | `ViewStyle`                            | `undefined`      | Style for the wrapping container.                    |
+| `zonePadding`        | `number`                               | `0`              | Uniform padding around the highlighted element.      |
+| `zonePaddingTop`     | `number`                               | `undefined`      | Top padding override.                                |
+| `zonePaddingRight`   | `number`                               | `undefined`      | Right padding override.                              |
+| `zonePaddingBottom`  | `number`                               | `undefined`      | Bottom padding override.                             |
+| `zonePaddingLeft`    | `number`                               | `undefined`      | Left padding override.                               |
+| `zoneBorderWidth`    | `number`                               | `0`              | Width of the zone border.                            |
+| `zoneBorderColor`    | `string`                               | `'transparent'`  | Color of the zone border.                            |
+| `zoneGlowColor`      | `string`                               | `'#FFFFFF'`      | Color of the outer glow effect.                      |
+| `zoneGlowRadius`     | `number`                               | `10`             | Blur radius of the glow effect.                      |
+| `zoneGlowSpread`     | `number`                               | `5`              | Spread radius of the glow effect.                    |
+| `zoneGlowOffsetX`    | `number`                               | `0`              | Horizontal offset of the glow effect.                |
+| `zoneGlowOffsetY`    | `number`                               | `0`              | Vertical offset of the glow effect.                  |
+| `zoneStyle`          | `ZoneStyle`                            | `undefined`      | Complete zone style object (groups above props).     |
+| `renderCustomCard`   | `(props) => ReactNode`                 | `undefined`      | Custom render function for this step's card.         |
 
 ### `TourConfig`
 
 Configuration object needed for `TourProvider`.
 
 ```tsx
-import { SnappySpringConfig, WigglySpringConfig } from 'react-native-lumen'
+import { SnappySpringConfig, WigglySpringConfig } from 'react-native-lumen';
 
 interface TourConfig {
   /**
-   * Animation configuration for the spotlight movement.
+   * Animation configuration for the zone movement.
    * You can use presets like WigglySpringConfig, GentleSpringConfig etc.
    */
   springConfig?: WithSpringConfig;
@@ -158,33 +171,47 @@ interface TourConfig {
    */
   backdropOpacity?: number;
   /**
-   * Global spotlight style settings.
+   * Global zone style settings.
    * Can be overridden per-step via TourZone props.
    */
-  spotlightStyle?: SpotlightStyle;
+  zoneStyle?: ZoneStyle;
+  /**
+   * Persistence configuration for saving/restoring tour progress.
+   */
+  persistence?: TourPersistenceConfig;
+  /**
+   * Defines whether to apply a shadow/glow effect to the active tour zone highlight.
+   */
+  enableGlow?: boolean;
+  /**
+   * Custom styles for the default tooltip appearance.
+   */
+  tooltipStyles?: TooltipStyles;
 }
 ```
 
-### `SpotlightStyle`
+### `ZoneStyle`
 
-Customization options for the spotlight appearance.
+Customization options for the zone appearance.
 
 ```tsx
-interface SpotlightStyle {
-  padding?: number;           // Uniform padding around the element (default: 8)
-  paddingTop?: number;        // Top padding override
-  paddingRight?: number;      // Right padding override
-  paddingBottom?: number;     // Bottom padding override
-  paddingLeft?: number;       // Left padding override
-  borderRadius?: number;      // Border radius for 'rounded-rect' shape (default: 10)
-  shape?: 'rounded-rect' | 'circle' | 'pill';  // Spotlight shape (default: 'rounded-rect')
-  borderWidth?: number;       // Border/glow ring width (default: 2)
-  borderColor?: string;       // Border color (default: '#007AFF')
-  glowColor?: string;         // Outer glow color (default: '#007AFF')
-  glowOpacity?: number;       // Glow opacity 0-1 (default: 0.4)
-  glowRadius?: number;        // Glow blur radius (default: 8)
-  springDamping?: number;     // Per-step spring damping override
-  springStiffness?: number;   // Per-step spring stiffness override
+interface ZoneStyle {
+  padding?: number; // Uniform padding around the element
+  paddingTop?: number; // Top padding override
+  paddingRight?: number; // Right padding override
+  paddingBottom?: number; // Bottom padding override
+  paddingLeft?: number; // Left padding override
+  borderRadius?: number; // Border radius for 'rounded-rect' shape
+  shape?: 'rounded-rect' | 'circle' | 'pill'; // Zone shape
+  borderWidth?: number; // Border ring width
+  borderColor?: string; // Border color
+  glowColor?: string; // Outer glow color (use rgba/hex-alpha for opacity) (requires enableGlow: true)
+  glowRadius?: number; // Glow blur radius (requires enableGlow: true)
+  glowSpread?: number; // Glow spread radius (requires enableGlow: true)
+  glowOffsetX?: number; // Horizontal offset for the glow (requires enableGlow: true)
+  glowOffsetY?: number; // Vertical offset for the glow (requires enableGlow: true)
+  springDamping?: number; // Per-step spring damping override
+  springStiffness?: number; // Per-step spring stiffness override
 }
 ```
 
@@ -203,8 +230,8 @@ interface CardProps {
   isFirst: boolean;
   isLast: boolean;
   labels?: TourLabels;
-  required?: boolean;     // Whether skip should be hidden
-  completed?: boolean;    // Whether next should be disabled (false = disabled)
+  required?: boolean; // Whether skip should be hidden
+  completed?: boolean; // Whether next should be disabled (false = disabled)
 }
 ```
 
@@ -248,7 +275,7 @@ const [tourComplete, setTourComplete] = useState(false);
       setTourComplete(true);
     }}
   />
-</TourZone>
+</TourZone>;
 ```
 
 ### Combining `required` and `completed`
@@ -386,16 +413,16 @@ The `useTour` hook provides full control over the tour lifecycle.
 import { useTour } from 'react-native-lumen';
 
 const {
-  start,              // Start or resume the tour
-  stop,               // Stop the tour (hides overlay, preserves progress)
-  next,               // Advance to the next step
-  prev,               // Go back to the previous step
-  currentStep,        // Currently active step key (null if inactive)
-  steps,              // Map of all registered steps
-  orderedStepKeys,    // Full ordered list of step keys
-  clearProgress,      // Clear saved progress from storage
-  hasSavedProgress,   // Whether there's saved progress to resume
-  scrollViewRef,      // Attach to your ScrollView for auto-scrolling
+  start, // Start or resume the tour
+  stop, // Stop the tour (hides overlay, preserves progress)
+  next, // Advance to the next step
+  prev, // Go back to the previous step
+  currentStep, // Currently active step key (null if inactive)
+  steps, // Map of all registered steps
+  orderedStepKeys, // Full ordered list of step keys
+  clearProgress, // Clear saved progress from storage
+  hasSavedProgress, // Whether there's saved progress to resume
+  scrollViewRef, // Attach to your ScrollView for auto-scrolling
 } = useTour();
 ```
 
@@ -449,51 +476,61 @@ const handleResetTour = async () => {
 
 ## Customization Guide
 
-### Spotlight Shapes
+### Zone Shapes
 
-React Native Lumen supports three spotlight shapes:
+React Native Lumen supports three zone shapes:
 
 ```tsx
 // Rounded rectangle (default)
-<TourZone stepKey="feature" spotlightShape="rounded-rect" borderRadius={12}>
+<TourZone stepKey="feature" shape="rounded-rect" borderRadius={12}>
   <MyComponent />
 </TourZone>
 
 // Circle - great for FAB buttons
-<TourZone stepKey="action" spotlightShape="circle">
+<TourZone stepKey="action" shape="circle">
   <FloatingActionButton />
 </TourZone>
 
 // Pill - great for horizontal elements like tag rows
-<TourZone stepKey="tags" spotlightShape="pill">
+<TourZone stepKey="tags" shape="pill">
   <TagList />
 </TourZone>
 ```
 
-### Per-Step Spotlight Styling
+### Glow Styles & Per-Step Zone Styling
 
-Customize the spotlight appearance per-step using props or the `spotlightStyle` object:
+React Native Lumen features an optional glow effect around the highlighted zone, which can bring a beautiful focus to your UI elements.
+
+**1. Enable Glow Globally**  
+Set `enableGlow: true` in your `TourProvider` config. This allows the glow effect to render.
+
+```tsx
+<TourProvider config={{ enableGlow: true }}>{/* App Content */}</TourProvider>
+```
+
+**2. Customize Per-Step styles**  
+You can customize the standard padding, border, and glow effects per-step using individual `zone*` props or the `zoneStyle` object:
 
 ```tsx
 // Using individual props
 <TourZone
   stepKey="important"
-  spotlightGlowColor="#FF6B6B"
-  spotlightBorderColor="#FF6B6B"
-  spotlightGlowOpacity={0.6}
-  spotlightPadding={16}
+  zoneGlowColor="rgba(255, 107, 107, 0.6)"
+  zoneBorderColor="#FF6B6B"
+  zoneGlowSpread={5}
+  zoneGlowOffsetY={2}
+  zonePadding={16}
 >
   <ImportantFeature />
 </TourZone>
 
-// Using spotlightStyle object
+// Using zoneStyle object
 <TourZone
   stepKey="premium"
-  spotlightStyle={{
+  zoneStyle={{
     shape: 'pill',
-    glowColor: '#FFD700',
+    glowColor: 'rgba(255, 215, 0, 0.5)',
     borderColor: '#FFD700',
-    glowOpacity: 0.5,
     borderWidth: 3,
   }}
 >
@@ -559,6 +596,52 @@ Available presets:
 - `SnappySpringConfig` (Fast & Responsive)
 - `and more!`
 
+### Custom Tooltip Card
+
+You can fully replace the default tooltip with your own beautiful UI using the `renderCard` prop in `config`.
+
+```tsx
+import { TourProvider, CardProps } from 'react-native-lumen';
+
+const CustomCard = ({
+  step,
+  next,
+  prev,
+  stop,
+  isLast,
+  currentStepIndex,
+  totalSteps,
+  required,
+  completed,
+}: CardProps) => (
+  <View style={{ padding: 20, backgroundColor: 'white', borderRadius: 20 }}>
+    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{step.name}</Text>
+    <Text>{step.description}</Text>
+    <Text style={{ color: 'gray' }}>
+      Step {currentStepIndex + 1} of {totalSteps}
+    </Text>
+
+    <View style={{ flexDirection: 'row', marginTop: 10 }}>
+      {!required && <Button onPress={stop} title="Close" />}
+      <View style={{ flex: 1 }} />
+      {!isLast ? (
+        <Button onPress={next} title="Next" disabled={completed === false} />
+      ) : (
+        <Button onPress={next} title="Finish" disabled={completed === false} />
+      )}
+    </View>
+  </View>
+);
+
+export default function App() {
+  return (
+    <TourProvider config={{ renderCard: (props) => <CustomCard {...props} /> }}>
+      <AppContent />
+    </TourProvider>
+  );
+}
+```
+
 ### Persistence (Resume Tours)
 
 React Native Lumen supports saving tour progress so users can resume where they left off. The library auto-detects available storage (MMKV v4 or AsyncStorage).
@@ -573,8 +656,8 @@ export default function App() {
         persistence: {
           enabled: true,
           tourId: 'onboarding-v1', // Unique ID for this tour
-          autoResume: true,        // Auto-resume from saved step (default: true)
-          clearOnComplete: true,   // Clear progress when tour finishes (default: true)
+          autoResume: true, // Auto-resume from saved step (default: true)
+          clearOnComplete: true, // Clear progress when tour finishes (default: true)
           maxAge: 7 * 24 * 60 * 60 * 1000, // Optional: expire after 7 days
         },
       }}
@@ -588,6 +671,7 @@ export default function App() {
 #### Storage Support
 
 The library automatically detects and uses:
+
 - **MMKV v4** (`react-native-mmkv` ^4.0.0) - Fastest, recommended
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) - Fallback
 
@@ -616,7 +700,7 @@ const customStorage: StorageAdapter = {
   }}
 >
   ...
-</TourProvider>
+</TourProvider>;
 ```
 
 #### Persistence API
@@ -673,60 +757,6 @@ await AsyncStorage.multiRemove(tourKeys);
 ```
 
 The storage key format is `@lumen_tour_{tourId}` where `tourId` is the value you passed in `persistence.tourId`.
-
-### Custom Tooltip Card
-
-You can fully replace the default tooltip with your own beautiful UI using the `renderCard` prop in `config`.
-
-```tsx
-import { TourProvider, CardProps } from 'react-native-lumen';
-
-const CustomCard = ({
-  step,
-  next,
-  prev,
-  stop,
-  isLast,
-  currentStepIndex,
-  totalSteps,
-  required,
-  completed,
-}: CardProps) => (
-  <View style={{ padding: 20, backgroundColor: 'white', borderRadius: 20 }}>
-    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{step.name}</Text>
-    <Text>{step.description}</Text>
-    <Text style={{ color: 'gray' }}>
-      Step {currentStepIndex + 1} of {totalSteps}
-    </Text>
-
-    <View style={{ flexDirection: 'row', marginTop: 10 }}>
-      {!required && <Button onPress={stop} title="Close" />}
-      <View style={{ flex: 1 }} />
-      {!isLast ? (
-        <Button
-          onPress={next}
-          title="Next"
-          disabled={completed === false}
-        />
-      ) : (
-        <Button
-          onPress={next}
-          title="Finish"
-          disabled={completed === false}
-        />
-      )}
-    </View>
-  </View>
-);
-
-export default function App() {
-  return (
-    <TourProvider config={{ renderCard: (props) => <CustomCard {...props} /> }}>
-      <AppContent />
-    </TourProvider>
-  );
-}
-```
 
 ## License
 

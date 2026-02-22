@@ -2,21 +2,21 @@ import type { WithSpringConfig, SharedValue } from 'react-native-reanimated';
 import React from 'react';
 import type { ViewStyle, TextStyle } from 'react-native';
 
-// ─── Spotlight Customization Types ───────────────────────────────────────────
+// ─── Zone Customization Types ───────────────────────────────────────────
 
 /**
- * Shape variants for the spotlight cutout.
+ * Shape variants for the zone cutout.
  */
-export type SpotlightShape = 'rounded-rect' | 'circle' | 'pill';
+export type ZoneShape = 'rounded-rect' | 'circle' | 'pill';
 
 /**
- * Customization options for the spotlight appearance.
+ * Customization options for the zone appearance.
  * Can be set globally via TourConfig or per-step via TourStep/TourZone.
  */
-export interface SpotlightStyle {
+export interface ZoneStyle {
   /**
    * Uniform padding around the highlighted element.
-   * @default 8
+   * @default 0
    */
   padding?: number;
   /**
@@ -36,50 +36,60 @@ export interface SpotlightStyle {
    */
   paddingLeft?: number;
   /**
-   * Border radius of the spotlight (for 'rounded-rect' shape).
+   * Border radius of the zone (for 'rounded-rect' shape).
    * @default 10
    */
   borderRadius?: number;
   /**
-   * Shape of the spotlight cutout.
+   * Shape of the zone cutout.
    * - 'rounded-rect': Standard rounded rectangle (default)
-   * - 'circle': Circular spotlight that encompasses the element
+   * - 'circle': Circular zone that encompasses the element
    * - 'pill': Pill/capsule shape with fully rounded ends
    * @default 'rounded-rect'
    */
-  shape?: SpotlightShape;
+  shape?: ZoneShape;
   /**
-   * Width of the border/glow ring around the spotlight.
+   * Width of the border around the zone.
    * Set to 0 to disable.
-   * @default 2
+   * @default 0
    */
   borderWidth?: number;
   /**
-   * Color of the border/glow ring.
-   * @default '#007AFF'
+   * Color of the border.
+   * @default 'transparent'
    */
   borderColor?: string;
   /**
-   * Color of the outer glow effect.
-   * @default '#007AFF'
+   * Color of the outer glow effect. Applied only if `enableGlow` is true in `TourConfig`.
+   * @default '#FFFFFF'
    */
   glowColor?: string;
   /**
-   * Opacity of the glow effect (0-1).
-   * @default 0.4
-   */
-  glowOpacity?: number;
-  /**
-   * Blur radius for the glow effect.
-   * @default 8
+   * Blur radius for the glow effect. Applied only if `enableGlow` is true in `TourConfig`.
+   * @default 10
    */
   glowRadius?: number;
   /**
-   * Spring damping for spotlight animations (per-step override).
+   * Spread radius for the glow effect. Applied only if `enableGlow` is true in `TourConfig`.
+   * @default 5
+   */
+  glowSpread?: number;
+  /**
+   * Horizontal offset for the glow effect.
+   * @default 0
+   */
+  glowOffsetX?: number;
+  /**
+   * Vertical offset for the glow effect.
+   * @default 0
+   */
+  glowOffsetY?: number;
+  /**
+   * Spring damping for zone animations (per-step override).
    */
   springDamping?: number;
   /**
-   * Spring stiffness for spotlight animations (per-step override).
+   * Spring stiffness for zone animations (per-step override).
    */
   springStiffness?: number;
 }
@@ -131,10 +141,10 @@ export interface TourStep {
    */
   completed?: boolean;
   /**
-   * Per-step spotlight style overrides.
-   * Merged with global spotlightStyle from TourConfig.
+   * Per-step zone style overrides.
+   * Merged with global zoneStyle from TourConfig.
    */
-  spotlightStyle?: SpotlightStyle;
+  zoneStyle?: ZoneStyle;
   /**
    * Custom render function for this step's tooltip/card.
    * Overrides the global renderCard from TourConfig.
@@ -306,7 +316,7 @@ export interface TourPersistenceConfig {
 
 export interface TourConfig {
   /**
-   * Animation configuration for the spotlight movement.
+   * Animation configuration for the zone movement.
    */
   springConfig?: WithSpringConfig;
   /**
@@ -331,15 +341,20 @@ export interface TourConfig {
    */
   tooltipStyles?: TooltipStyles;
   /**
-   * Global spotlight style settings.
-   * Can be overridden per-step via TourStep.spotlightStyle or TourZone props.
+   * Global zone style settings.
+   * Can be overridden per-step via TourStep.zoneStyle or TourZone props.
    */
-  spotlightStyle?: SpotlightStyle;
+  zoneStyle?: ZoneStyle;
   /**
    * Persistence configuration for saving/restoring tour progress.
    * Supports MMKV v4 and AsyncStorage out of the box.
    */
   persistence?: TourPersistenceConfig;
+  /**
+   * Defines whether to apply a shadow/glow effect to the active tour zone highlight.
+   * @default false
+   */
+  enableGlow?: boolean;
 }
 
 export interface TourContextType {
@@ -422,11 +437,11 @@ export interface InternalTourContextType extends TourContextType {
   targetHeight: SharedValue<number>;
   targetRadius: SharedValue<number>;
   opacity: SharedValue<number>;
-  /** Border width for the spotlight glow ring */
-  spotlightBorderWidth: SharedValue<number>;
+  /** Border width for the zone glow ring */
+  zoneBorderWidth: SharedValue<number>;
   containerRef: React.RefObject<any>;
   scrollViewRef: React.RefObject<any>;
   setScrollViewRef: (ref: any) => void;
-  /** Resolved spotlight style for the current step */
-  currentSpotlightStyle: SpotlightStyle | null;
+  /** Resolved zone style for the current step */
+  currentZoneStyle: ZoneStyle | null;
 }

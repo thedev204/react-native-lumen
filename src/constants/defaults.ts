@@ -1,5 +1,5 @@
 import type { WithSpringConfig } from 'react-native-reanimated';
-import type { SpotlightStyle } from '../types';
+import type { ZoneStyle } from '../types';
 
 export const DEFAULT_SPRING_CONFIG: WithSpringConfig = {
   damping: 20,
@@ -16,35 +16,37 @@ export const DEFAULT_LABELS = {
 };
 
 /**
- * Default spotlight style configuration.
+ * Default zone style configuration.
  * These values are used when no custom style is provided.
  */
-export const DEFAULT_SPOTLIGHT_STYLE: Required<SpotlightStyle> = {
-  padding: 8,
-  paddingTop: 8,
-  paddingRight: 8,
-  paddingBottom: 8,
-  paddingLeft: 8,
+export const DEFAULT_ZONE_STYLE: Required<ZoneStyle> = {
+  padding: 0,
+  paddingTop: 0,
+  paddingRight: 0,
+  paddingBottom: 0,
+  paddingLeft: 0,
   borderRadius: 10,
   shape: 'rounded-rect',
-  borderWidth: 2,
-  borderColor: '#007AFF',
-  glowColor: '#007AFF',
-  glowOpacity: 0.4,
-  glowRadius: 8,
+  borderWidth: 0,
+  borderColor: 'transparent',
+  glowColor: '#FFFFFF',
+  glowRadius: 10,
+  glowSpread: 5,
+  glowOffsetX: 0,
+  glowOffsetY: 0,
   springDamping: 20,
   springStiffness: 90,
 };
 
 /**
- * Merges global and per-step spotlight styles with defaults.
+ * Merges global and per-step zone styles with defaults.
  */
-export function resolveSpotlightStyle(
-  globalStyle?: SpotlightStyle,
-  stepStyle?: SpotlightStyle
-): Required<SpotlightStyle> {
+export function resolveZoneStyle(
+  globalStyle?: ZoneStyle,
+  stepStyle?: ZoneStyle
+): Required<ZoneStyle> {
   const merged = {
-    ...DEFAULT_SPOTLIGHT_STYLE,
+    ...DEFAULT_ZONE_STYLE,
     ...globalStyle,
     ...stepStyle,
   };

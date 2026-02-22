@@ -2,7 +2,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   TourProvider,
   WigglySpringConfig,
-  type SpotlightStyle,
+  type ZoneStyle,
   type TourPersistenceConfig,
 } from 'react-native-lumen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -10,15 +10,11 @@ import { Home } from './Home';
 import { tourSteps } from './data/tourSteps';
 import { StyleSheet } from 'react-native';
 
-// Global spotlight style - applied to all steps unless overridden
-const globalSpotlightStyle: SpotlightStyle = {
-  padding: 8,
-  borderRadius: 12,
-  borderWidth: 2,
+// Global zone style - applied to all steps unless overridden
+const globalZoneStyle: ZoneStyle = {
+  padding: 0,
+  borderWidth: 1,
   borderColor: '#007AFF',
-  glowColor: '#007AFF',
-  glowOpacity: 0.4,
-  glowRadius: 8,
 };
 
 // Persistence configuration - auto-detects MMKV v4+ or AsyncStorage
@@ -51,10 +47,13 @@ export default function App() {
                 finish: 'Complete!',
                 skip: 'Skip Tour',
               },
-              // Global spotlight style - can be overridden per-step
-              spotlightStyle: globalSpotlightStyle,
+              // Global zone style - can be overridden per-step
+              zoneStyle: globalZoneStyle,
               // Persistence - saves progress to storage (MMKV or AsyncStorage)
               persistence: persistenceConfig,
+              preventInteraction: false,
+              // enableGlow - enable/disable glow effect for all steps (can still be overridden per-step)
+              enableGlow: false,
             }}
           >
             <Home />

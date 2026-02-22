@@ -21,8 +21,8 @@ export {
 
 // Re-export specific types for convenience
 export type {
-  SpotlightStyle,
-  SpotlightShape,
+  ZoneStyle,
+  ZoneShape,
   TourStep,
   CardProps,
   TourConfig,

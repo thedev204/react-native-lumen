@@ -1,7 +1,6 @@
 import React, {
   useEffect,
   useCallback,
-  useRef,
   useMemo,
   type ComponentType,
 } from 'react';
@@ -19,8 +18,8 @@ import {
 import { Dimensions } from 'react-native';
 import type {
   InternalTourContextType,
-  SpotlightStyle,
-  SpotlightShape,
+  ZoneStyle,
+  ZoneShape,
   CardProps,
 } from '../types';
 
@@ -29,73 +28,31 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const AnimatedView = Animated.View as unknown as ComponentType<any>;
 
 interface TourZoneProps {
-  /** Unique identifier for this step */
   stepKey: string;
-  /** Display name shown in tooltip */
   name?: string;
-  /** Description text shown in tooltip */
   description: string;
-  /** Order of appearance in the tour */
   order?: number;
-  /**
-   * @deprecated Use `spotlightShape` instead
-   */
-  shape?: 'rect' | 'circle';
-  /**
-   * Shape of the spotlight cutout.
-   * - 'rounded-rect': Standard rounded rectangle (default)
-   * - 'circle': Circular spotlight that encompasses the element
-   * - 'pill': Pill/capsule shape with fully rounded ends
-   */
-  spotlightShape?: SpotlightShape;
-  /** Border radius of the spotlight (for 'rounded-rect' shape) */
+  shape?: ZoneShape;
   borderRadius?: number;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  /** If true, allows user interaction with the target element */
   clickable?: boolean;
-  /**
-   * If true, prevents interaction with the underlying app for this specific step.
-   * Overrides the global preventInteraction setting from TourConfig.
-   * @default undefined (uses global setting)
-   */
   preventInteraction?: boolean;
-  /**
-   * If true, the skip button is hidden for this step.
-   * The user must press next (or complete the action) to proceed.
-   */
   required?: boolean;
-  /**
-   * Controls whether the next/finish button is enabled for this step.
-   * - `undefined` (default): No enforcement, next button always enabled.
-   * - `false`: Next button is disabled until this becomes `true`.
-   * - `true`: Next button is enabled.
-   */
   completed?: boolean;
-  // ─── Spotlight Style Props ─────────────────────────────────────────────
-  /** Uniform padding around the highlighted element */
-  spotlightPadding?: number;
-  /** Top padding for the spotlight */
-  spotlightPaddingTop?: number;
-  /** Right padding for the spotlight */
-  spotlightPaddingRight?: number;
-  /** Bottom padding for the spotlight */
-  spotlightPaddingBottom?: number;
-  /** Left padding for the spotlight */
-  spotlightPaddingLeft?: number;
-  /** Width of the border/glow ring around the spotlight */
-  spotlightBorderWidth?: number;
-  /** Color of the border/glow ring */
-  spotlightBorderColor?: string;
-  /** Color of the outer glow effect */
-  spotlightGlowColor?: string;
-  /** Opacity of the glow effect (0-1) */
-  spotlightGlowOpacity?: number;
-  /** Blur radius for the glow effect */
-  spotlightGlowRadius?: number;
-  /** Complete spotlight style object (alternative to individual props) */
-  spotlightStyle?: SpotlightStyle;
-  /** Custom render function for this step's tooltip/card */
+  zonePadding?: number;
+  zonePaddingTop?: number;
+  zonePaddingRight?: number;
+  zonePaddingBottom?: number;
+  zonePaddingLeft?: number;
+  zoneBorderWidth?: number;
+  zoneBorderColor?: string;
+  zoneGlowColor?: string;
+  zoneGlowRadius?: number;
+  zoneGlowSpread?: number;
+  zoneGlowOffsetX?: number;
+  zoneGlowOffsetY?: number;
+  zoneStyle?: ZoneStyle;
   renderCustomCard?: (props: CardProps) => React.ReactNode;
 }
 
@@ -104,8 +61,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
   name,
   description,
   order,
-  shape = 'rect',
-  spotlightShape,
+  shape = 'rounded-rect',
   borderRadius = 10,
   children,
   style,
@@ -113,18 +69,19 @@ export const TourZone: React.FC<TourZoneProps> = ({
   preventInteraction,
   required,
   completed,
-  // Spotlight style props
-  spotlightPadding,
-  spotlightPaddingTop,
-  spotlightPaddingRight,
-  spotlightPaddingBottom,
-  spotlightPaddingLeft,
-  spotlightBorderWidth,
-  spotlightBorderColor,
-  spotlightGlowColor,
-  spotlightGlowOpacity,
-  spotlightGlowRadius,
-  spotlightStyle,
+  zonePadding,
+  zonePaddingTop,
+  zonePaddingRight,
+  zonePaddingBottom,
+  zonePaddingLeft,
+  zoneBorderWidth,
+  zoneBorderColor,
+  zoneGlowColor,
+  zoneGlowRadius,
+  zoneGlowSpread,
+  zoneGlowOffsetX,
+  zoneGlowOffsetY,
+  zoneStyle,
   renderCustomCard,
 }) => {
   const {
@@ -141,34 +98,65 @@ export const TourZone: React.FC<TourZoneProps> = ({
     targetRadius,
     config,
   } = useTour() as InternalTourContextType;
-  const viewRef = useAnimatedRef<any>();
 
+  const viewRef = useAnimatedRef<any>();
   const isActive = currentStep === stepKey;
 
-  // Track if we're currently scrolling to prevent position updates during scroll
+  // The critical lock for the UI thread
   const isScrolling = useSharedValue(false);
-  const hasScrolled = useRef(false);
 
-  // Signal when scroll completes (from JS thread)
-  const onScrollComplete = useCallback(() => {
-    isScrolling.value = false;
-  }, [isScrolling]);
+  console.log(`zoneGlowRadius ${stepKey}`, zoneGlowRadius);
+
+  const resolvedZoneStyle: ZoneStyle = useMemo(
+    () => ({
+      ...zoneStyle,
+      ...(zonePadding !== undefined && { padding: zonePadding }),
+      ...(zonePaddingTop !== undefined && { paddingTop: zonePaddingTop }),
+      ...(zonePaddingRight !== undefined && { paddingRight: zonePaddingRight }),
+      ...(zonePaddingBottom !== undefined && {
+        paddingBottom: zonePaddingBottom,
+      }),
+      ...(zonePaddingLeft !== undefined && { paddingLeft: zonePaddingLeft }),
+      ...(zoneBorderWidth !== undefined && { borderWidth: zoneBorderWidth }),
+      ...(zoneBorderColor !== undefined && { borderColor: zoneBorderColor }),
+      ...(zoneGlowColor !== undefined && { glowColor: zoneGlowColor }),
+      ...(zoneGlowRadius !== undefined && { glowRadius: zoneGlowRadius }),
+      ...(zoneGlowSpread !== undefined && { glowSpread: zoneGlowSpread }),
+      ...(zoneGlowOffsetX !== undefined && { glowOffsetX: zoneGlowOffsetX }),
+      ...(zoneGlowOffsetY !== undefined && { glowOffsetY: zoneGlowOffsetY }),
+      shape,
+      borderRadius,
+    }),
+    [
+      zoneStyle,
+      zonePadding,
+      zonePaddingTop,
+      zonePaddingRight,
+      zonePaddingBottom,
+      zonePaddingLeft,
+      zoneBorderWidth,
+      zoneBorderColor,
+      zoneGlowColor,
+      zoneGlowRadius,
+      zoneGlowSpread,
+      zoneGlowOffsetX,
+      zoneGlowOffsetY,
+      shape,
+      borderRadius,
+    ]
+  );
 
   /**
-   * UNIFIED MEASUREMENT FUNCTION (JS THREAD)
-   * Always measures relative to SCREEN (Viewport), not Content.
-   * This fixes the bug where measureLayout returned content-relative Y.
+   * Captures the final, perfect coordinates and UNLOCKS the UI thread.
+   * This is explicitly the ONLY function allowed to set isScrolling.value = false.
    */
   const measureJS = useCallback(() => {
-    if (isScrolling.value || !isActive) {
-      return;
-    }
+    if (!isActive) return;
 
     const view = viewRef.current as any;
     const container = containerRef.current as any;
 
     if (view && container) {
-      // 1. Measure the View in Screen Coordinates (PageX/PageY)
       view.measure(
         (
           _x: number,
@@ -178,8 +166,6 @@ export const TourZone: React.FC<TourZoneProps> = ({
           pageX: number,
           pageY: number
         ) => {
-          // 2. Measure the Container (TourOverlay) in Screen Coordinates
-          // This handles cases where the Tour Overlay isn't exactly at 0,0 (e.g. inside a SafeAreaView)
           container.measure(
             (
               _cx: number,
@@ -190,7 +176,6 @@ export const TourZone: React.FC<TourZoneProps> = ({
               containerPageY: number
             ) => {
               if (width > 0 && height > 0 && !isNaN(pageX) && !isNaN(pageY)) {
-                // Calculate final position relative to the Tour Overlay
                 const finalX = pageX - containerPageX;
                 const finalY = pageY - containerPageY;
 
@@ -200,28 +185,164 @@ export const TourZone: React.FC<TourZoneProps> = ({
                   width,
                   height,
                 });
+
+                // Unlock the UI thread to take over tracking
+                isScrolling.value = false;
               }
             }
           );
         }
       );
     }
-  }, [containerRef, stepKey, updateStepLayout, viewRef, isScrolling, isActive]);
+  }, [containerRef, isActive, isScrolling, stepKey, updateStepLayout, viewRef]);
 
-  // Initial measurement when step becomes active
+  /**
+   * Unified Pipeline: Measure -> Predict Scroll -> Scroll -> Measure Final -> Unlock
+   * Replaces all independent timers to prevent race conditions on consecutive steps.
+   */
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || !scrollViewRef?.current || !viewRef.current) {
+      return;
+    }
 
-    // Small delay to ensure layout is ready
-    const timeoutId = setTimeout(() => {
-      measureJS();
-    }, 50);
+    let cancelled = false;
+    let attemptCount = 0;
+    const maxAttempts = 5;
+    let hasInitiatedScroll = false;
 
-    return () => clearTimeout(timeoutId);
-  }, [isActive, measureJS]);
+    // 1. Lock immediately so the UI thread doesn't grab off-screen coordinates
+    isScrolling.value = true;
 
-  // Reanimated Frame Callback (UI Thread Tracking)
-  // This keeps the highlight sticky during manual user scrolling
+    const checkAndScroll = (delay: number) => {
+      const timeoutId = setTimeout(() => {
+        if (cancelled || hasInitiatedScroll) return;
+        attemptCount++;
+
+        const view = viewRef.current as any;
+        const scroll = scrollViewRef.current as any;
+        const container = containerRef.current as any;
+
+        view.measure(
+          (
+            _mx: number,
+            _my: number,
+            mw: number,
+            mh: number,
+            px: number,
+            py: number
+          ) => {
+            if (cancelled) return;
+
+            if (mw > 0 && mh > 0 && !isNaN(px) && !isNaN(py)) {
+              const topBuffer = 100;
+              const bottomBuffer = 150;
+              const needsScroll =
+                py < topBuffer || py + mh > SCREEN_HEIGHT - bottomBuffer;
+
+              if (needsScroll) {
+                hasInitiatedScroll = true;
+
+                scroll.measure(
+                  (
+                    _sx: number,
+                    _sy: number,
+                    _sw: number,
+                    _sh: number,
+                    scrollPx: number,
+                    scrollPy: number
+                  ) => {
+                    if (cancelled) return;
+
+                    if (view.measureLayout) {
+                      view.measureLayout(
+                        scroll,
+                        (contentX: number, contentY: number) => {
+                          if (cancelled) return;
+
+                          const centerY =
+                            contentY - SCREEN_HEIGHT / 2 + mh / 2 + 50;
+                          const scrollY = Math.max(0, centerY);
+
+                          container.measure(
+                            (
+                              _cx: number,
+                              _cy: number,
+                              _cw: number,
+                              _ch: number,
+                              containerPx: number,
+                              containerPy: number
+                            ) => {
+                              if (cancelled) return;
+
+                              // Calculate predictive screen coordinates so the zone smoothly jumps
+                              // to the destination *while* the screen is scrolling.
+                              const targetScreenY =
+                                scrollPy + contentY - scrollY - containerPy;
+                              const targetScreenX =
+                                scrollPx + contentX - containerPx;
+
+                              updateStepLayout(stepKey, {
+                                x: targetScreenX,
+                                y: targetScreenY,
+                                width: mw,
+                                height: mh,
+                              });
+
+                              try {
+                                scroll.scrollTo({ y: scrollY, animated: true });
+                              } catch (e) {
+                                console.error(e);
+                              }
+
+                              // Wait for the scroll animation to settle, then verify exact position
+                              setTimeout(() => {
+                                if (!cancelled) measureJS();
+                              }, 800);
+                            }
+                          );
+                        },
+                        () => {
+                          // Fallback if measureLayout is unavailable
+                          setTimeout(() => {
+                            if (!cancelled) measureJS();
+                          }, 800);
+                        }
+                      );
+                    }
+                  }
+                );
+              } else {
+                // No scroll needed, just get the perfect coordinates and unlock
+                measureJS();
+              }
+            } else if (attemptCount < maxAttempts) {
+              checkAndScroll(150);
+            }
+          }
+        );
+      }, delay);
+
+      return timeoutId;
+    };
+
+    const initialTimeout = checkAndScroll(50);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(initialTimeout);
+    };
+  }, [
+    isActive,
+    scrollViewRef,
+    viewRef,
+    containerRef,
+    stepKey,
+    updateStepLayout,
+    measureJS,
+    isScrolling,
+  ]);
+
+  // UI Thread tracking
   useFrameCallback(() => {
     'worklet';
     if (!isActive || isScrolling.value) {
@@ -250,11 +371,45 @@ export const TourZone: React.FC<TourZoneProps> = ({
             stiffness: 100,
           };
 
-          targetX.value = withSpring(x, springConfig);
-          targetY.value = withSpring(y, springConfig);
-          targetWidth.value = withSpring(width, springConfig);
-          targetHeight.value = withSpring(height, springConfig);
-          targetRadius.value = withSpring(borderRadius, springConfig);
+          const zpt =
+            resolvedZoneStyle.paddingTop ?? resolvedZoneStyle.padding ?? 0;
+          const zpr =
+            resolvedZoneStyle.paddingRight ?? resolvedZoneStyle.padding ?? 0;
+          const zpb =
+            resolvedZoneStyle.paddingBottom ?? resolvedZoneStyle.padding ?? 0;
+          const zpl =
+            resolvedZoneStyle.paddingLeft ?? resolvedZoneStyle.padding ?? 0;
+          const zShape = resolvedZoneStyle.shape ?? 'rounded-rect';
+
+          let sx = x - zpl;
+          let sy = y - zpt;
+          let sw = width + zpl + zpr;
+          let sh = height + zpt + zpb;
+          let sr = borderRadius;
+
+          if (zShape === 'circle') {
+            const cx = x + width / 2;
+            const cy = y + height / 2;
+            const radius =
+              Math.max(width, height) / 2 + (resolvedZoneStyle.padding ?? 0);
+            sx = cx - radius;
+            sy = cy - radius;
+            sw = radius * 2;
+            sh = radius * 2;
+            sr = radius;
+          } else if (zShape === 'pill') {
+            sx = x - zpl;
+            sy = y - zpt;
+            sw = width + zpl + zpr;
+            sh = height + zpt + zpb;
+            sr = sh / 2;
+          }
+
+          targetX.value = withSpring(sx, springConfig);
+          targetY.value = withSpring(sy, springConfig);
+          targetWidth.value = withSpring(sw, springConfig);
+          targetHeight.value = withSpring(sh, springConfig);
+          targetRadius.value = withSpring(sr, springConfig);
         }
       }
     } catch {
@@ -262,218 +417,14 @@ export const TourZone: React.FC<TourZoneProps> = ({
     }
   }, isActive);
 
-  // Auto-scroll Effect
-  useEffect(() => {
-    if (!isActive || !scrollViewRef?.current || !viewRef.current) {
-      return;
+  // Sync position if the element physically resizes, but strictly avoid
+  // measuring if we are currently handling an orchestrated scroll.
+  const onLayout = useCallback(() => {
+    if (isActive && !isScrolling.value) {
+      measureJS();
     }
+  }, [isActive, isScrolling.value, measureJS]);
 
-    hasScrolled.current = false;
-    const view = viewRef.current as any;
-    const scroll = scrollViewRef.current as any;
-    const container = containerRef.current as any;
-
-    let attemptCount = 0;
-    const maxAttempts = 3;
-
-    const attemptMeasurement = (delay: number) => {
-      const timeoutId = setTimeout(() => {
-        if (hasScrolled.current) return;
-
-        attemptCount++;
-
-        // 1. Check current visibility on screen
-        view.measure(
-          (
-            _mx: number,
-            _my: number,
-            mw: number,
-            mh: number,
-            px: number,
-            py: number
-          ) => {
-            if (mw > 0 && mh > 0 && !isNaN(px) && !isNaN(py)) {
-              const viewportHeight = SCREEN_HEIGHT;
-              const topBuffer = 100;
-              const bottomBuffer = 150;
-
-              // Check if element is out of the "safe" visual zone
-              const needsScroll =
-                py < topBuffer || py + mh > viewportHeight - bottomBuffer;
-
-              if (needsScroll) {
-                hasScrolled.current = true;
-                isScrolling.value = true;
-
-                // 2. Measure ScrollView to get its Screen Position (Offset from top)
-                // This fixes the "upwards" bug by accounting for headers/safe-areas
-                scroll.measure(
-                  (
-                    _sx: number,
-                    _sy: number,
-                    _sw: number,
-                    _sh: number,
-                    scrollPx: number,
-                    scrollPy: number
-                  ) => {
-                    // 3. Measure Element relative to ScrollView Content
-                    if (view.measureLayout) {
-                      view.measureLayout(
-                        scroll,
-                        (contentX: number, contentY: number) => {
-                          // Calculate target scroll position (center the element)
-                          const centerY =
-                            contentY - viewportHeight / 2 + mh / 2 + 50;
-                          const scrollY = Math.max(0, centerY);
-
-                          // 4. Measure Container to map coordinates to Overlay space
-                          container.measure(
-                            (
-                              _cx: number,
-                              _cy: number,
-                              _cw: number,
-                              _ch: number,
-                              containerPx: number,
-                              containerPy: number
-                            ) => {
-                              // THE FIX: Add scrollPy (ScrollView's screen Y)
-                              // Visual Y = ScrollViewScreenY + (ElementContentY - ScrollAmount)
-                              const targetScreenY =
-                                scrollPy + contentY - scrollY - containerPy;
-
-                              // X is simpler: ScrollViewScreenX + ElementContentX - ContainerScreenX
-                              const targetScreenX =
-                                scrollPx + contentX - containerPx;
-
-                              updateStepLayout(stepKey, {
-                                x: targetScreenX,
-                                y: targetScreenY,
-                                width: mw,
-                                height: mh,
-                              });
-
-                              try {
-                                scroll.scrollTo({ y: scrollY, animated: true });
-                                // Wait for scroll animation
-                                setTimeout(() => onScrollComplete(), 800);
-                              } catch (e) {
-                                console.error(e);
-                                onScrollComplete();
-                              }
-                            }
-                          );
-                        }
-                      );
-                    }
-                  }
-                );
-              } else {
-                // Element is already visible - just sync position
-                container.measure(
-                  (
-                    _cx: number,
-                    _cy: number,
-                    _cw: number,
-                    _ch: number,
-                    cPx: number,
-                    cPy: number
-                  ) => {
-                    const finalX = px - cPx;
-                    const finalY = py - cPy;
-
-                    updateStepLayout(stepKey, {
-                      x: finalX,
-                      y: finalY,
-                      width: mw,
-                      height: mh,
-                    });
-                  }
-                );
-              }
-            } else if (attemptCount < maxAttempts) {
-              attemptMeasurement(150 * attemptCount);
-            }
-          }
-        );
-      }, delay);
-      return timeoutId;
-    };
-
-    const timeoutId = attemptMeasurement(150);
-    return () => clearTimeout(timeoutId);
-  }, [
-    isActive,
-    scrollViewRef,
-    viewRef,
-    stepKey,
-    isScrolling,
-    onScrollComplete,
-    containerRef,
-    updateStepLayout,
-  ]);
-
-  // Standard onLayout handler (uses the unified measureJS)
-  const onLayout = () => {
-    measureJS();
-  };
-
-  // Build the spotlight style from individual props or the spotlightStyle object
-  // Memoize to satisfy exhaustive-deps and prevent unnecessary re-renders
-  const resolvedSpotlightStyle: SpotlightStyle = useMemo(
-    () => ({
-      ...spotlightStyle,
-      // Individual props override spotlightStyle object
-      ...(spotlightPadding !== undefined && { padding: spotlightPadding }),
-      ...(spotlightPaddingTop !== undefined && {
-        paddingTop: spotlightPaddingTop,
-      }),
-      ...(spotlightPaddingRight !== undefined && {
-        paddingRight: spotlightPaddingRight,
-      }),
-      ...(spotlightPaddingBottom !== undefined && {
-        paddingBottom: spotlightPaddingBottom,
-      }),
-      ...(spotlightPaddingLeft !== undefined && {
-        paddingLeft: spotlightPaddingLeft,
-      }),
-      ...(spotlightBorderWidth !== undefined && {
-        borderWidth: spotlightBorderWidth,
-      }),
-      ...(spotlightBorderColor !== undefined && {
-        borderColor: spotlightBorderColor,
-      }),
-      ...(spotlightGlowColor !== undefined && {
-        glowColor: spotlightGlowColor,
-      }),
-      ...(spotlightGlowOpacity !== undefined && {
-        glowOpacity: spotlightGlowOpacity,
-      }),
-      ...(spotlightGlowRadius !== undefined && {
-        glowRadius: spotlightGlowRadius,
-      }),
-      // Shape: prefer spotlightShape, fall back to legacy shape prop conversion
-      shape: spotlightShape ?? (shape === 'circle' ? 'circle' : 'rounded-rect'),
-      borderRadius,
-    }),
-    [
-      spotlightStyle,
-      spotlightPadding,
-      spotlightPaddingTop,
-      spotlightPaddingRight,
-      spotlightPaddingBottom,
-      spotlightPaddingLeft,
-      spotlightBorderWidth,
-      spotlightBorderColor,
-      spotlightGlowColor,
-      spotlightGlowOpacity,
-      spotlightGlowRadius,
-      spotlightShape,
-      shape,
-      borderRadius,
-    ]
-  );
-
-  // Register step on mount and when enforcement props change
   useEffect(() => {
     registerStep({
       key: stepKey,
@@ -484,8 +435,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
       preventInteraction,
       required,
       completed,
-      meta: { shape: resolvedSpotlightStyle.shape, borderRadius },
-      spotlightStyle: resolvedSpotlightStyle,
+      meta: { shape: resolvedZoneStyle.shape, borderRadius },
+      zoneStyle: resolvedZoneStyle,
       renderCustomCard,
     });
     return () => unregisterStep(stepKey);
@@ -501,7 +452,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
     preventInteraction,
     required,
     completed,
-    resolvedSpotlightStyle,
+    resolvedZoneStyle,
     renderCustomCard,
   ]);
 

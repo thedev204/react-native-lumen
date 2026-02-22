@@ -83,7 +83,6 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
@@ -97,7 +96,6 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-
 ### Publishing to npm
 
 We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
@@ -107,7 +105,6 @@ To publish new versions, run the following:
 ```sh
 yarn release
 ```
-
 
 ### Scripts
 

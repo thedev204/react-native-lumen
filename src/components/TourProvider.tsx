@@ -20,7 +20,7 @@ import type {
   MeasureResult,
   TourConfig,
   InternalTourContextType,
-  SpotlightStyle,
+  ZoneStyle,
   StorageAdapter,
   StepsOrder,
 } from '../types';
@@ -30,8 +30,8 @@ import { TourTooltip } from './TourTooltip';
 import {
   DEFAULT_BACKDROP_OPACITY,
   DEFAULT_SPRING_CONFIG,
-  DEFAULT_SPOTLIGHT_STYLE,
-  resolveSpotlightStyle,
+  DEFAULT_ZONE_STYLE,
+  resolveZoneStyle,
 } from '../constants/defaults';
 import {
   detectStorage,
@@ -43,12 +43,12 @@ import {
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /**
- * Computes the spotlight geometry based on element bounds and spotlight style.
+ * Computes the zone geometry based on element bounds and zone style.
  * Handles different shapes: rounded-rect, circle, pill.
  */
-function computeSpotlightGeometry(
+function computeZoneGeometry(
   element: MeasureResult,
-  style: Required<SpotlightStyle>
+  style: Required<ZoneStyle>
 ): {
   x: number;
   y: number;
@@ -69,11 +69,12 @@ function computeSpotlightGeometry(
 
   switch (shape) {
     case 'circle': {
-      // Create a circular spotlight that encompasses the element
+      // Create a circular zone that encompasses the element
       const cx = element.x + element.width / 2;
       const cy = element.y + element.height / 2;
+      // Use the larger dimension to create a circle, plus padding
       const radius =
-        Math.sqrt(element.width ** 2 + element.height ** 2) / 2 + style.padding;
+        Math.max(element.width, element.height) / 2 + style.padding;
       sx = cx - radius;
       sy = cy - radius;
       sw = radius * 2;
@@ -218,23 +219,21 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   const targetHeight = useSharedValue(0);
   const targetRadius = useSharedValue(10); // Default border radius
   const opacity = useSharedValue(0); // 0 = hidden, 1 = visible
-  const spotlightBorderWidth = useSharedValue(
-    DEFAULT_SPOTLIGHT_STYLE.borderWidth
-  );
+  const zoneBorderWidth = useSharedValue(DEFAULT_ZONE_STYLE.borderWidth);
 
-  // Track current step's resolved spotlight style
-  const currentSpotlightStyle = useMemo<SpotlightStyle | null>(() => {
+  // Track current step's resolved zone style
+  const currentZoneStyle = useMemo<ZoneStyle | null>(() => {
     if (!currentStep) return null;
     const step = steps[currentStep];
     if (!step) return null;
-    return resolveSpotlightStyle(config?.spotlightStyle, step.spotlightStyle);
-  }, [currentStep, steps, config?.spotlightStyle]);
+    return resolveZoneStyle(config?.zoneStyle, step.zoneStyle);
+  }, [currentStep, steps, config?.zoneStyle]);
 
   // Helper to get spring config for a step (supports per-step overrides)
   const getSpringConfigForStep = useCallback(
     (stepKey: string): WithSpringConfig => {
       const step = steps[stepKey];
-      const stepStyle = step?.spotlightStyle;
+      const stepStyle = step?.zoneStyle;
       const baseConfig = config?.springConfig ?? DEFAULT_SPRING_CONFIG;
 
       // Allow per-step spring overrides
@@ -281,21 +280,21 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         }
 
         const step = steps[stepKey];
-        const resolvedStyle = resolveSpotlightStyle(
-          config?.spotlightStyle,
-          step?.spotlightStyle
+        const resolvedStyle = resolveZoneStyle(
+          config?.zoneStyle,
+          step?.zoneStyle
         );
         const springConfig = getSpringConfigForStep(stepKey);
 
-        // Compute spotlight geometry based on style (handles shapes and padding)
-        const geo = computeSpotlightGeometry(measure, resolvedStyle);
+        // Compute zone geometry based on style (handles shapes and padding)
+        const geo = computeZoneGeometry(measure, resolvedStyle);
 
         targetX.value = withSpring(geo.x, springConfig);
         targetY.value = withSpring(geo.y, springConfig);
         targetWidth.value = withSpring(geo.width, springConfig);
         targetHeight.value = withSpring(geo.height, springConfig);
         targetRadius.value = withSpring(geo.borderRadius, springConfig);
-        spotlightBorderWidth.value = withSpring(
+        zoneBorderWidth.value = withSpring(
           resolvedStyle.borderWidth,
           springConfig
         );
@@ -313,11 +312,11 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetWidth,
       targetHeight,
       targetRadius,
-      spotlightBorderWidth,
+      zoneBorderWidth,
       opacity,
       getSpringConfigForStep,
       steps,
-      config?.spotlightStyle,
+      config?.zoneStyle,
     ]
   );
 
@@ -368,21 +367,21 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       // If this step is currently active (e.g. scroll happened or resize), update shared values on the fly
       if (currentStep === key) {
         const step = steps[key];
-        const resolvedStyle = resolveSpotlightStyle(
-          config?.spotlightStyle,
-          step?.spotlightStyle
+        const resolvedStyle = resolveZoneStyle(
+          config?.zoneStyle,
+          step?.zoneStyle
         );
         const springConfig = getSpringConfigForStep(key);
 
-        // Compute spotlight geometry based on style
-        const geo = computeSpotlightGeometry(measure, resolvedStyle);
+        // Compute zone geometry based on style
+        const geo = computeZoneGeometry(measure, resolvedStyle);
 
         targetX.value = withSpring(geo.x, springConfig);
         targetY.value = withSpring(geo.y, springConfig);
         targetWidth.value = withSpring(geo.width, springConfig);
         targetHeight.value = withSpring(geo.height, springConfig);
         targetRadius.value = withSpring(geo.borderRadius, springConfig);
-        spotlightBorderWidth.value = withSpring(
+        zoneBorderWidth.value = withSpring(
           resolvedStyle.borderWidth,
           springConfig
         );
@@ -398,11 +397,11 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetWidth,
       targetHeight,
       targetRadius,
-      spotlightBorderWidth,
+      zoneBorderWidth,
       opacity,
       backdropOpacity,
       getSpringConfigForStep,
-      config?.spotlightStyle,
+      config?.zoneStyle,
       steps,
     ]
   );
@@ -653,13 +652,13 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetHeight,
       targetRadius,
       opacity,
-      spotlightBorderWidth,
+      zoneBorderWidth,
       steps,
       config,
       containerRef,
       scrollViewRef,
       setScrollViewRef,
-      currentSpotlightStyle,
+      currentZoneStyle,
       clearProgress,
       hasSavedProgress,
       orderedStepKeys,
@@ -679,13 +678,13 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetHeight,
       targetRadius,
       opacity,
-      spotlightBorderWidth,
+      zoneBorderWidth,
       steps,
       config,
       containerRef,
       scrollViewRef,
       setScrollViewRef,
-      currentSpotlightStyle,
+      currentZoneStyle,
       clearProgress,
       hasSavedProgress,
       orderedStepKeys,

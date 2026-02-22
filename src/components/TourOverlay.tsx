@@ -1,5 +1,5 @@
 import { memo, type ComponentType, useMemo } from 'react';
-import { StyleSheet, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Animated, {
   useAnimatedProps,
@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTour } from '../hooks/useTour';
 import type { InternalTourContextType } from '../types';
-import { DEFAULT_SPOTLIGHT_STYLE } from '../constants/defaults';
+import { DEFAULT_ZONE_STYLE } from '../constants/defaults';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,21 +50,21 @@ export const TourOverlay = memo(() => {
     targetHeight,
     targetRadius,
     opacity,
-    spotlightBorderWidth,
+    zoneBorderWidth,
     config,
     currentStep,
     steps,
-    currentSpotlightStyle,
+    currentZoneStyle,
   } = useTour() as InternalTourContextType;
 
-  // Get resolved spotlight style for styling the glow/border
-  const spotlightStyle = useMemo(() => {
+  // Get resolved zone style for styling the glow/border
+  const zoneStyle = useMemo(() => {
     return {
-      ...DEFAULT_SPOTLIGHT_STYLE,
-      ...config?.spotlightStyle,
-      ...currentSpotlightStyle,
+      ...DEFAULT_ZONE_STYLE,
+      ...config?.zoneStyle,
+      ...currentZoneStyle,
     };
-  }, [config?.spotlightStyle, currentSpotlightStyle]);
+  }, [config?.zoneStyle, currentZoneStyle]);
 
   // Create the d string for the mask
   // Outer rectangle covers the whole screen
@@ -114,7 +114,8 @@ export const TourOverlay = memo(() => {
   //    - pointerEvents='none' on the whole container.
 
   // Check per-step preventInteraction first, then fall back to global config
-  const shouldBlockOutside = step?.preventInteraction ?? config?.preventInteraction ?? false;
+  const shouldBlockOutside =
+    step?.preventInteraction ?? config?.preventInteraction ?? false;
 
   // If we don't want to block outside, we just let everything pass.
   // But wait, if we let everything pass, we can't implement 'clickable=false' strictness?
@@ -138,9 +139,10 @@ export const TourOverlay = memo(() => {
     };
   });
 
-  // Animated style for the spotlight border/glow ring
-  const spotlightBorderStyle = useAnimatedStyle(() => {
-    const borderW = spotlightBorderWidth?.value ?? spotlightStyle.borderWidth;
+  // Animated style for the zone border/glow ring
+  const zoneBorderStyle = useAnimatedStyle(() => {
+    const isGlowEnabled = config?.enableGlow === true;
+    const borderW = zoneBorderWidth?.value ?? zoneStyle.borderWidth;
 
     return {
       position: 'absolute' as const,
@@ -150,20 +152,17 @@ export const TourOverlay = memo(() => {
       height: targetHeight.value,
       borderRadius: targetRadius.value,
       borderWidth: borderW,
-      borderColor: spotlightStyle.borderColor,
+      borderColor: zoneStyle.borderColor,
       backgroundColor: 'transparent',
-      // Glow effect using shadow
-      shadowColor: spotlightStyle.glowColor,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: spotlightStyle.glowOpacity,
-      shadowRadius: spotlightStyle.glowRadius,
-      elevation: Platform.OS === 'android' ? 8 : 0,
+      ...(isGlowEnabled && {
+        // Glow effect using React Native 0.76+ boxShadow API
+        boxShadow: `${zoneStyle.glowOffsetX}px ${zoneStyle.glowOffsetY}px ${zoneStyle.glowRadius}px ${zoneStyle.glowSpread}px ${zoneStyle.glowColor}`,
+      }),
     };
   });
 
   // Determine if we should show the border/glow
-  const showBorder =
-    spotlightStyle.borderWidth > 0 || spotlightStyle.glowOpacity > 0;
+  const showBorder = config?.enableGlow === true || zoneStyle.borderWidth > 0;
 
   return (
     <AnimatedView
@@ -188,9 +187,9 @@ export const TourOverlay = memo(() => {
           // backgroundColor="transparent" // Default
         />
       )}
-      {/* Border/Glow ring around the spotlight */}
+      {/* Border/Glow ring around the zone */}
       {showBorder && currentStep && (
-        <AnimatedView style={spotlightBorderStyle} pointerEvents="none" />
+        <AnimatedView style={zoneBorderStyle} pointerEvents="none" />
       )}
     </AnimatedView>
   );
