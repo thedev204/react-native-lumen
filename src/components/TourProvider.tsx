@@ -166,6 +166,33 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   const measurements = useRef<Record<string, MeasureResult>>({});
   const containerRef = useAnimatedRef<any>();
 
+  // ─── Scroll-end detection ────────────────────────────────────────────────────
+  // Holds a one-shot callback set by the active TourZone just before it calls
+  // scrollTo(). When the ScrollView fires onMomentumScrollEnd, triggerScrollEnd
+  // calls this callback so TourZone can measure the final settled position
+  // immediately instead of waiting for a fixed-duration timeout.
+  const onScrollEndCallbackRef = useRef<(() => void) | null>(null);
+
+  const registerScrollEndCallback = useCallback((cb: () => void) => {
+    onScrollEndCallbackRef.current = cb;
+  }, []);
+
+  const unregisterScrollEndCallback = useCallback(() => {
+    onScrollEndCallbackRef.current = null;
+  }, []);
+
+  /**
+   * One-shot: fires the registered callback and immediately clears it so that
+   * user-initiated momentum scrolls that happen between steps don't re-trigger.
+   */
+  const triggerScrollEnd = useCallback(() => {
+    const cb = onScrollEndCallbackRef.current;
+    if (cb) {
+      onScrollEndCallbackRef.current = null;
+      cb();
+    }
+  }, []);
+
   // ─── Persistence Setup ─────────────────────────────────────────────────────
   const persistenceConfig = config?.persistence;
   const isPersistenceEnabled = persistenceConfig?.enabled ?? false;
@@ -543,17 +570,13 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         // Check if the next step is registered (mounted)
         if (steps[nextStepKey]) {
           setCurrentStep(nextStepKey);
-          // Don't call animateToStep here - it uses cached measurements that may be stale
-          // after scroll. The useFrameCallback in TourZone will handle position tracking
-          // using measure() with correct screen coordinates (pageX/pageY).
-          // Just ensure the overlay is visible.
+          // Position tracking is handled by TourZone's useFrameCallback.
           opacity.value = withTiming(backdropOpacity, { duration: 300 });
         } else {
-          // Step not mounted yet (on a different screen) - set as pending
+          // Next step is on a different screen — set as pending and hide overlay
           pendingStepRef.current = nextStepKey;
           setCurrentStep(null);
           opacity.value = withTiming(0, { duration: 300 });
-          // Persist pending step so it can be resumed
           if (isPersistenceEnabled && storageAdapter) {
             const stepIndex = ordered.indexOf(nextStepKey);
             saveTourProgress(
@@ -599,10 +622,9 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         // Check if the previous step is registered (mounted)
         if (steps[prevStepKey]) {
           setCurrentStep(prevStepKey);
-          // Don't call animateToStep - let useFrameCallback handle position tracking
           opacity.value = withTiming(backdropOpacity, { duration: 300 });
         } else {
-          // Step not mounted (on a different screen) - set as pending
+          // Previous step is on a different screen — set as pending
           pendingStepRef.current = prevStepKey;
           setCurrentStep(null);
           opacity.value = withTiming(0, { duration: 300 });
@@ -613,25 +635,8 @@ export const TourProvider: React.FC<TourProviderProps> = ({
 
   const scrollViewRef = useAnimatedRef<any>();
 
-  const setScrollViewRef = useCallback((_ref: any) => {
-    // If user passes a ref, we might want to sync it?
-    // Or we just provide this function for them to give us the ref.
-    // With useAnimatedRef, we can assign it if it's a function or object?
-    // Actually, safest is to let them assign our ref to their component.
-    // But they might have their own ref.
-    // Let's assume they call this with their ref.
-    // BUT useAnimatedRef cannot easily accept an external ref object to "become".
-    // Pattern: They should use the ref we give them, OR we wrap their component?
-    // Simpler: We just expose 'scrollViewRef' from context, and they attach it.
-    // So 'setScrollViewRef' might be redundant if we just say "here is the ref, use it".
-    // But if they have their own, they can't usage two refs easily without merging.
-    // Let's stick to exposing `scrollViewRef` from context that they MUST use.
-    // But wait, the interface says `setScrollViewRef`.
-    // Let's keep `setScrollViewRef` as a no-op or a way to manually set it if needed (not RecAnimated friendly).
-    // Actually, let's just expose `scrollViewRef` and `registerScrollView` which essentially does nothing if we expect them to use the ref object.
-    // Let's make `setScrollViewRef` actually do something if possible, or just document "Use exposed scrollViewRef".
-    // For now, let's just return the `scrollViewRef` we created.
-  }, []);
+  // Deprecated: consumers should use the scrollViewRef directly from context.
+  const setScrollViewRef = useCallback((_ref: any) => {}, []);
 
   // Expose ordered step keys for tooltip and external use
   const orderedStepKeys = useMemo(() => getOrderedSteps(), [getOrderedSteps]);
@@ -662,6 +667,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       clearProgress,
       hasSavedProgress,
       orderedStepKeys,
+      registerScrollEndCallback,
+      unregisterScrollEndCallback,
+      triggerScrollEnd,
+      backdropOpacity,
     }),
     [
       start,
@@ -688,6 +697,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       clearProgress,
       hasSavedProgress,
       orderedStepKeys,
+      registerScrollEndCallback,
+      unregisterScrollEndCallback,
+      triggerScrollEnd,
+      backdropOpacity,
     ]
   );
 

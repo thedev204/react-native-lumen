@@ -428,6 +428,12 @@ export interface TourContextType {
    * Includes all steps across all screens (for multi-screen tours).
    */
   orderedStepKeys: string[];
+  /**
+   * Call this from the ScrollView's onMomentumScrollEnd event to signal that
+   * a programmatic scroll has finished. The library uses this to fire the
+   * final accurate measurement instead of relying on a fixed-duration timeout.
+   */
+  triggerScrollEnd: () => void;
 }
 
 export interface InternalTourContextType extends TourContextType {
@@ -444,4 +450,18 @@ export interface InternalTourContextType extends TourContextType {
   setScrollViewRef: (ref: any) => void;
   /** Resolved zone style for the current step */
   currentZoneStyle: ZoneStyle | null;
+  /**
+   * Registers a one-shot callback that fires once when triggerScrollEnd is called.
+   * TourZone uses this to know when the programmatic scroll animation has settled.
+   */
+  registerScrollEndCallback: (cb: () => void) => void;
+  /** Clears any pending scroll-end callback (called on effect cleanup). */
+  unregisterScrollEndCallback: () => void;
+  /** Fires the registered scroll-end callback (if any) and clears it. */
+  triggerScrollEnd: () => void;
+  /**
+   * The configured backdrop opacity (0–1). TourZone reads this so it can
+   * fade the overlay back to the correct level after a scroll-induced fade-out.
+   */
+  backdropOpacity: number;
 }

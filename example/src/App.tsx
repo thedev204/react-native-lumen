@@ -1,9 +1,9 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   TourProvider,
-  WigglySpringConfig,
   type ZoneStyle,
   type TourPersistenceConfig,
+  WigglySpringConfig,
 } from 'react-native-lumen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Home } from './Home';

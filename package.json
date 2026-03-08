@@ -1,6 +1,6 @@
 {
   "name": "react-native-lumen",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A customizable app tour library for React Native",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -13,11 +13,7 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "src",
     "lib",
-    "android",
-    "ios",
-    "cpp",
     "*.podspec",
     "react-native.config.js",
     "!ios/build",

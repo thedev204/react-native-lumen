@@ -1,4 +1,14 @@
 {
   "extends": "./tsconfig",
-  "exclude": ["example", "lib"]
+  "compilerOptions": {
+    "sourceMap": false,
+    "declarationMap": false
+  },
+  "exclude": [
+    "example",
+    "lib",
+    "**/__tests__",
+    "**/__fixtures__",
+    "**/__mocks__"
+  ]
 }

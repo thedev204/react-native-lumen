@@ -1,5 +1,7 @@
 # React Native Lumen 💡
 
+[![npm version](https://img.shields.io/npm/v/react-native-lumen.svg)](https://www.npmjs.com/package/react-native-lumen)
+
 > A high-performance, fully customizable app tour library for React Native, powered by Reanimated 3.
 
 ![Banner](./assets/banner.png)
@@ -569,24 +571,29 @@ import { TourProvider, WigglySpringConfig } from 'react-native-lumen';
 
 ### Auto Scroll Support
 
-React Native Lumen supports auto-scrolling to steps that are off-screen. To enable this, simply attach the `scrollViewRef` provided by the hook to your scroll container.
+React Native Lumen supports auto-scrolling to steps that are off-screen. It perfectly handles long scrollable lists by detecting exactly when the scroll animation finishes before snapping the highlight, ensuring the UI remains smooth.
+
+To enable this, use the `useTourScrollView` hook and spread its props onto your scroll container:
 
 ```tsx
-import { useTour } from 'react-native-lumen';
+import { useTourScrollView } from 'react-native-lumen';
 import Animated from 'react-native-reanimated';
 
 const MyScrollableScreen = () => {
-  const { scrollViewRef } = useTour();
+  const { scrollViewProps } = useTourScrollView({
+    // Optional: disable user scrolling while the tour is active
+    disableScrollDuringTour: true,
+  });
 
   return (
-    <Animated.ScrollView ref={scrollViewRef}>
+    <Animated.ScrollView {...scrollViewProps}>
       {/* ... content with TourZones ... */}
     </Animated.ScrollView>
   );
 };
 ```
 
-> **Note:** The scroll view must be compatible with Reanimated refs (e.g. `Animated.ScrollView`).
+> **Note:** The scroll view must be compatible with Reanimated refs (e.g. `Animated.ScrollView`). Spreading `scrollViewProps` automatically wires up the `ref`, `scrollEnabled`, and the `onMomentumScrollEnd` event needed for perfect scroll-end detection and smooth transitions.
 
 Available presets:
 

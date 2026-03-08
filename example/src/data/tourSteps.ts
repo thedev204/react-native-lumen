@@ -1,4 +1,3 @@
-// Example tour step configurations demonstrating various zone styles
 export const tourSteps = {
   headerIcon: {
     key: 'header-icon',
@@ -30,9 +29,33 @@ export const tourSteps = {
     name: 'Post',
     description: 'This is the first post in the feed.',
   },
+  statsCard: {
+    key: 'stats-card',
+    order: 6,
+    name: 'Stats Overview',
+    description: 'Your weekly performance stats are summarised here.',
+  },
+  trendsCard: {
+    key: 'trends-card',
+    order: 7,
+    name: 'Trending Now',
+    description: "Today's trending topics, curated for you.",
+  },
+  quickActions: {
+    key: 'quick-actions',
+    order: 8,
+    name: 'Quick Actions',
+    description: 'Bookmark, share or react to content from this toolbar.',
+  },
+  bottomBanner: {
+    key: 'bottom-banner',
+    order: 9,
+    name: 'Upgrade Banner',
+    description: 'Unlock premium features by upgrading your account.',
+  },
   fab: {
     key: 'fab',
-    order: 6,
+    order: 10,
     name: 'Create New',
     description: 'Tap here to create a new post or transaction.',
     zoneStyle: {

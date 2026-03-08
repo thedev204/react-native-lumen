@@ -30,11 +30,22 @@ export interface TourScrollViewResult {
    */
   scrollTo: (options: { x?: number; y?: number; animated?: boolean }) => void;
   /**
+   * Pass this to your ScrollView's onMomentumScrollEnd prop so the tour
+   * library knows exactly when a programmatic scroll has finished, allowing
+   * it to immediately re-measure the highlighted element instead of waiting
+   * for a fixed-duration timeout.
+   *
+   * Already included in scrollViewProps — only needed if you build your own
+   * scroll props manually.
+   */
+  onMomentumScrollEnd: () => void;
+  /**
    * Props to spread onto your ScrollView for full tour integration.
-   * Includes ref and scrollEnabled (if disableScrollDuringTour is true).
+   * Includes ref, onMomentumScrollEnd, and scrollEnabled (if disableScrollDuringTour is true).
    */
   scrollViewProps: {
     ref: React.RefObject<any>;
+    onMomentumScrollEnd: () => void;
     scrollEnabled?: boolean;
   };
 }
@@ -69,7 +80,7 @@ export function useTourScrollView(
 
   // Get the tour context - use type assertion since we know the internal structure
   const tour = useTour();
-  const { scrollViewRef, currentStep } = tour as any;
+  const { scrollViewRef, currentStep, triggerScrollEnd } = tour as any;
 
   const isTourActive = currentStep !== null;
   const scrollEnabled = disableScrollDuringTour ? !isTourActive : true;
@@ -92,20 +103,26 @@ export function useTourScrollView(
   );
 
   const scrollViewProps = useMemo(() => {
-    const props: { ref: React.RefObject<any>; scrollEnabled?: boolean } = {
+    const props: {
+      ref: React.RefObject<any>;
+      onMomentumScrollEnd: () => void;
+      scrollEnabled?: boolean;
+    } = {
       ref: scrollViewRef,
+      onMomentumScrollEnd: triggerScrollEnd,
     };
     if (disableScrollDuringTour) {
       props.scrollEnabled = scrollEnabled;
     }
     return props;
-  }, [scrollViewRef, disableScrollDuringTour, scrollEnabled]);
+  }, [scrollViewRef, triggerScrollEnd, disableScrollDuringTour, scrollEnabled]);
 
   return {
     scrollViewRef,
     isTourActive,
     scrollEnabled,
     scrollTo,
+    onMomentumScrollEnd: triggerScrollEnd,
     scrollViewProps,
   };
 }

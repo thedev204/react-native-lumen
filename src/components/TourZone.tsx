@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   type ComponentType,
@@ -11,6 +12,7 @@ import {
   measure,
   useFrameCallback,
   withSpring,
+  withTiming,
   default as Animated,
   type AnimatedRef,
   useSharedValue,
@@ -97,15 +99,16 @@ export const TourZone: React.FC<TourZoneProps> = ({
     targetHeight,
     targetRadius,
     config,
+    registerScrollEndCallback,
+    unregisterScrollEndCallback,
+    opacity,
+    backdropOpacity,
   } = useTour() as InternalTourContextType;
 
   const viewRef = useAnimatedRef<any>();
   const isActive = currentStep === stepKey;
 
-  // The critical lock for the UI thread
   const isScrolling = useSharedValue(false);
-
-  console.log(`zoneGlowRadius ${stepKey}`, zoneGlowRadius);
 
   const resolvedZoneStyle: ZoneStyle = useMemo(
     () => ({
@@ -146,60 +149,66 @@ export const TourZone: React.FC<TourZoneProps> = ({
     ]
   );
 
-  /**
-   * Captures the final, perfect coordinates and UNLOCKS the UI thread.
-   * This is explicitly the ONLY function allowed to set isScrolling.value = false.
-   */
-  const measureJS = useCallback(() => {
-    if (!isActive) return;
-
-    const view = viewRef.current as any;
-    const container = containerRef.current as any;
-
-    if (view && container) {
-      view.measure(
-        (
-          _x: number,
-          _y: number,
-          width: number,
-          height: number,
-          pageX: number,
-          pageY: number
-        ) => {
-          container.measure(
-            (
-              _cx: number,
-              _cy: number,
-              _cw: number,
-              _ch: number,
-              containerPageX: number,
-              containerPageY: number
-            ) => {
-              if (width > 0 && height > 0 && !isNaN(pageX) && !isNaN(pageY)) {
-                const finalX = pageX - containerPageX;
-                const finalY = pageY - containerPageY;
-
-                updateStepLayout(stepKey, {
-                  x: finalX,
-                  y: finalY,
-                  width,
-                  height,
-                });
-
-                // Unlock the UI thread to take over tracking
-                isScrolling.value = false;
-              }
-            }
-          );
-        }
-      );
+  // Lock the frame callback synchronously after commit so it can't read
+  // stale off-screen coordinates in the gap before the scroll pipeline starts.
+  useLayoutEffect(() => {
+    if (isActive) {
+      isScrolling.value = true;
     }
-  }, [containerRef, isActive, isScrolling, stepKey, updateStepLayout, viewRef]);
+  }, [isActive, isScrolling]);
 
-  /**
-   * Unified Pipeline: Measure -> Predict Scroll -> Scroll -> Measure Final -> Unlock
-   * Replaces all independent timers to prevent race conditions on consecutive steps.
-   */
+  // Reads the element's final screen position and updates the overlay.
+  // onComplete fires after updateStepLayout succeeds — used to fade back in
+  // after a scroll-induced fade-out.
+  const measureJS = useCallback(
+    (onComplete?: () => void) => {
+      if (!isActive) return;
+
+      const view = viewRef.current as any;
+      const container = containerRef.current as any;
+
+      if (view && container) {
+        view.measure(
+          (
+            _x: number,
+            _y: number,
+            width: number,
+            height: number,
+            pageX: number,
+            pageY: number
+          ) => {
+            container.measure(
+              (
+                _cx: number,
+                _cy: number,
+                _cw: number,
+                _ch: number,
+                containerPageX: number,
+                containerPageY: number
+              ) => {
+                if (width > 0 && height > 0 && !isNaN(pageX) && !isNaN(pageY)) {
+                  const finalX = pageX - containerPageX;
+                  const finalY = pageY - containerPageY;
+
+                  updateStepLayout(stepKey, {
+                    x: finalX,
+                    y: finalY,
+                    width,
+                    height,
+                  });
+
+                  isScrolling.value = false;
+                  onComplete?.();
+                }
+              }
+            );
+          }
+        );
+      }
+    },
+    [containerRef, isActive, isScrolling, stepKey, updateStepLayout, viewRef]
+  );
+
   useEffect(() => {
     if (!isActive || !scrollViewRef?.current || !viewRef.current) {
       return;
@@ -209,8 +218,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
     let attemptCount = 0;
     const maxAttempts = 5;
     let hasInitiatedScroll = false;
+    let fallbackTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    // 1. Lock immediately so the UI thread doesn't grab off-screen coordinates
     isScrolling.value = true;
 
     const checkAndScroll = (delay: number) => {
@@ -288,23 +297,54 @@ export const TourZone: React.FC<TourZoneProps> = ({
                                 height: mh,
                               });
 
+                              // Fade out before scrolling so the user doesn't see
+                              // the predicted (potentially wrong) interim position.
+                              opacity.value = withTiming(0, { duration: 150 });
+
                               try {
                                 scroll.scrollTo({ y: scrollY, animated: true });
                               } catch (e) {
                                 console.error(e);
                               }
 
-                              // Wait for the scroll animation to settle, then verify exact position
-                              setTimeout(() => {
-                                if (!cancelled) measureJS();
-                              }, 800);
+                              // Fade back in once the scroll settles and the position is accurate.
+                              const fadeIn = () => {
+                                opacity.value = withTiming(backdropOpacity, {
+                                  duration: 220,
+                                });
+                              };
+
+                              // Primary: fire as soon as onMomentumScrollEnd is received.
+                              registerScrollEndCallback(() => {
+                                if (!cancelled) {
+                                  if (fallbackTimeoutId !== null) {
+                                    clearTimeout(fallbackTimeoutId);
+                                    fallbackTimeoutId = null;
+                                  }
+                                  measureJS(fadeIn);
+                                }
+                              });
+
+                              // Fallback: if onMomentumScrollEnd never fires.
+                              fallbackTimeoutId = setTimeout(() => {
+                                if (!cancelled) {
+                                  unregisterScrollEndCallback();
+                                  measureJS(fadeIn);
+                                }
+                              }, 1500);
                             }
                           );
                         },
                         () => {
-                          // Fallback if measureLayout is unavailable
-                          setTimeout(() => {
-                            if (!cancelled) measureJS();
+                          // measureLayout unavailable — degrade to timed fallback.
+                          fallbackTimeoutId = setTimeout(() => {
+                            if (!cancelled) {
+                              measureJS(() => {
+                                opacity.value = withTiming(backdropOpacity, {
+                                  duration: 220,
+                                });
+                              });
+                            }
                           }, 800);
                         }
                       );
@@ -312,7 +352,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
                   }
                 );
               } else {
-                // No scroll needed, just get the perfect coordinates and unlock
+                // No scroll needed — element is already on screen.
                 measureJS();
               }
             } else if (attemptCount < maxAttempts) {
@@ -330,6 +370,9 @@ export const TourZone: React.FC<TourZoneProps> = ({
     return () => {
       cancelled = true;
       clearTimeout(initialTimeout);
+      if (fallbackTimeoutId !== null) clearTimeout(fallbackTimeoutId);
+      // Ensure no stale callback fires after this step is deactivated
+      unregisterScrollEndCallback();
     };
   }, [
     isActive,
@@ -340,6 +383,10 @@ export const TourZone: React.FC<TourZoneProps> = ({
     updateStepLayout,
     measureJS,
     isScrolling,
+    registerScrollEndCallback,
+    unregisterScrollEndCallback,
+    opacity,
+    backdropOpacity,
   ]);
 
   // UI Thread tracking
