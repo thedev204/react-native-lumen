@@ -1,0 +1,8 @@
+{
+  "label": "Guides",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "In-depth guides for advanced features in React Native Lumen."
+  }
+}
