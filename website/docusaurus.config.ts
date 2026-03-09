@@ -76,11 +76,11 @@ const config: Config = {
             },
             {
               label: 'API Reference',
-              to: '/docs/api',
+              to: '/docs/category/api-reference',
             },
             {
               label: 'Guides',
-              to: '/docs/guides',
+              to: '/docs/category/guides',
             },
           ],
         },
