@@ -1,0 +1,6 @@
+node_modules/
+website/node_modules/
+example/node_modules/
+website/build/
+.expo/
+dist/
