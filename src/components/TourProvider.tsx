@@ -40,7 +40,7 @@ import {
   clearTourProgress,
 } from '../utils/storage';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 /**
  * Computes the zone geometry based on element bounds and zone style.
