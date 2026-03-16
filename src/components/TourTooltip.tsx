@@ -20,7 +20,7 @@ import type {
 } from '../types';
 import { DEFAULT_LABELS } from '../constants/defaults';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 const getDynamicStyles = (tooltipStyles?: TooltipStyles) => {
   const defaultStyles = {
