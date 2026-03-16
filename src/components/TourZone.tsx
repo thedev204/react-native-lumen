@@ -25,7 +25,7 @@ import type {
   CardProps,
 } from '../types';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 const AnimatedView = Animated.View as unknown as ComponentType<any>;
 
