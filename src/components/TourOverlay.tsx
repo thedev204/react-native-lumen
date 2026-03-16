@@ -9,7 +9,7 @@ import { useTour } from '../hooks/useTour';
 import type { InternalTourContextType } from '../types';
 import { DEFAULT_ZONE_STYLE } from '../constants/defaults';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedView = Animated.View as unknown as ComponentType<any>;
