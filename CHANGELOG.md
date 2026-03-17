@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.1.2] - 2026-03-17
+
+### Added
+
+- Added `SECURITY.md`.
+
+### Fixed
+
+- Merged community fix for background overlay on Android.
+
+---
+
 ## [1.1.1] - 2025-03-08
 
 ### Added
