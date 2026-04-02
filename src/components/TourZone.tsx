@@ -210,10 +210,57 @@ export const TourZone: React.FC<TourZoneProps> = ({
   );
 
   useEffect(() => {
-    if (!isActive || !scrollViewRef?.current || !viewRef.current) {
+    if (!isActive || !viewRef.current) {
       return;
     }
 
+    // No ScrollView present — measure immediately without any scroll logic.
+    if (!scrollViewRef?.current) {
+      let cancelled = false;
+      let attemptCount = 0;
+      const maxAttempts = 5;
+
+      const tryMeasure = (delay: number) => {
+        const timeoutId = setTimeout(() => {
+          if (cancelled) return;
+          attemptCount++;
+
+          const view = viewRef.current as any;
+          const container = containerRef.current as any;
+
+          if (!view || !container) return;
+
+          view.measure(
+            (
+              _x: number,
+              _y: number,
+              mw: number,
+              mh: number,
+              px: number,
+              py: number
+            ) => {
+              if (cancelled) return;
+              if (mw > 0 && mh > 0 && !isNaN(px) && !isNaN(py)) {
+                measureJS();
+              } else if (attemptCount < maxAttempts) {
+                tryMeasure(150);
+              }
+            }
+          );
+        }, delay);
+
+        return timeoutId;
+      };
+
+      const initialTimeout = tryMeasure(50);
+
+      return () => {
+        cancelled = true;
+        clearTimeout(initialTimeout);
+      };
+    }
+
+    // ScrollView is present — run the full scroll-check + measure logic.
     let cancelled = false;
     let attemptCount = 0;
     const maxAttempts = 5;

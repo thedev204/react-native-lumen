@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.1.3] - 2026-04-02
+
+### Fixed
+
+- Steps not working on non scrollview screen (#6)
+
+---
+
 ## [1.1.2] - 2026-03-17
 
 ### Added
