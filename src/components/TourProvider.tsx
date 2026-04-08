@@ -325,22 +325,18 @@ export const TourProvider: React.FC<TourProviderProps> = ({
           resolvedStyle.borderWidth,
           springConfig
         );
-
-        // Ensure overlay is visible
-        opacity.value = withTiming(backdropOpacity, { duration: 300 });
+        // Opacity is controlled by TourZone after measurement confirms position
       } else {
         console.warn('[TourProvider] No measurements found for step:', stepKey);
       }
     },
     [
-      backdropOpacity,
       targetX,
       targetY,
       targetWidth,
       targetHeight,
       targetRadius,
       zoneBorderWidth,
-      opacity,
       getSpringConfigForStep,
       steps,
       config?.zoneStyle,
@@ -412,9 +408,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
           resolvedStyle.borderWidth,
           springConfig
         );
-
-        // Ensure overlay is visible (fixes race condition where start() was called before measure)
-        opacity.value = withTiming(backdropOpacity, { duration: 300 });
+        // Opacity is controlled by TourZone after measurement confirms position
       }
     },
     [
@@ -425,8 +419,6 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetHeight,
       targetRadius,
       zoneBorderWidth,
-      opacity,
-      backdropOpacity,
       getSpringConfigForStep,
       config?.zoneStyle,
       steps,
@@ -570,8 +562,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         // Check if the next step is registered (mounted)
         if (steps[nextStepKey]) {
           setCurrentStep(nextStepKey);
-          // Position tracking is handled by TourZone's useFrameCallback.
-          opacity.value = withTiming(backdropOpacity, { duration: 300 });
+          // Opacity is controlled by TourZone after measurement confirms position
         } else {
           // Next step is on a different screen — set as pending and hide overlay
           pendingStepRef.current = nextStepKey;
@@ -605,7 +596,6 @@ export const TourProvider: React.FC<TourProviderProps> = ({
     getOrderedSteps,
     stop,
     opacity,
-    backdropOpacity,
     isPersistenceEnabled,
     clearOnComplete,
     storageAdapter,
@@ -622,7 +612,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         // Check if the previous step is registered (mounted)
         if (steps[prevStepKey]) {
           setCurrentStep(prevStepKey);
-          opacity.value = withTiming(backdropOpacity, { duration: 300 });
+          // Opacity is controlled by TourZone after measurement confirms position
         } else {
           // Previous step is on a different screen — set as pending
           pendingStepRef.current = prevStepKey;
@@ -631,7 +621,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({
         }
       }
     }
-  }, [currentStep, steps, getOrderedSteps, opacity, backdropOpacity]);
+  }, [currentStep, steps, getOrderedSteps, opacity]);
 
   const scrollViewRef = useAnimatedRef<any>();
 

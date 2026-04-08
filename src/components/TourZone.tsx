@@ -198,7 +198,14 @@ export const TourZone: React.FC<TourZoneProps> = ({
                   });
 
                   isScrolling.value = false;
-                  onComplete?.();
+                  if (onComplete) {
+                    onComplete();
+                  } else {
+                    // No scroll path — fade in now that position is confirmed
+                    opacity.value = withTiming(backdropOpacity, {
+                      duration: 300,
+                    });
+                  }
                 }
               }
             );
@@ -206,7 +213,16 @@ export const TourZone: React.FC<TourZoneProps> = ({
         );
       }
     },
-    [containerRef, isActive, isScrolling, stepKey, updateStepLayout, viewRef]
+    [
+      containerRef,
+      isActive,
+      isScrolling,
+      stepKey,
+      updateStepLayout,
+      viewRef,
+      opacity,
+      backdropOpacity,
+    ]
   );
 
   useEffect(() => {
@@ -344,9 +360,9 @@ export const TourZone: React.FC<TourZoneProps> = ({
                                 height: mh,
                               });
 
-                              // Fade out before scrolling so the user doesn't see
-                              // the predicted (potentially wrong) interim position.
-                              opacity.value = withTiming(0, { duration: 150 });
+                              // Hide immediately before scrolling so the user
+                              // never sees the predicted (potentially wrong) interim position.
+                              opacity.value = 0;
 
                               try {
                                 scroll.scrollTo({ y: scrollY, animated: true });
