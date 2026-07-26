@@ -19,6 +19,7 @@ import type {
   TooltipStyles,
 } from '../types';
 import { DEFAULT_LABELS } from '../constants/defaults';
+import { getTooltipTop } from '../utils/tooltipPlacement';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
@@ -135,13 +136,6 @@ export const TourTooltip = memo(() => {
       Extrapolation.CLAMP
     );
 
-    const spaceAbove = safeTargetY;
-    const spaceBelow = SCREEN_HEIGHT - (safeTargetY + safeTargetHeight);
-
-    const shouldPlaceAbove =
-      (spaceAbove > spaceBelow && spaceAbove > safeTooltipHeight + 30) ||
-      (safeTargetY > SCREEN_HEIGHT / 2 && spaceAbove > safeTooltipHeight + 20);
-
     const horizontalCenter = safeTargetX + safeTargetWidth / 2;
     const left = horizontalCenter - tooltipWidth / 2;
 
@@ -159,13 +153,13 @@ export const TourTooltip = memo(() => {
       transform: [{ translateY: interpolate(activeOpacity, [0, 1], [10, 0]) }],
     };
 
-    if (shouldPlaceAbove) {
-      style.top = Math.max(10, safeTargetY - safeTooltipHeight - 20);
-      style.bottom = undefined;
-    } else {
-      style.top = safeTargetY + safeTargetHeight + 20;
-      style.bottom = undefined;
-    }
+    style.top = getTooltipTop(
+      safeTargetY,
+      safeTargetHeight,
+      safeTooltipHeight,
+      SCREEN_HEIGHT
+    );
+    style.bottom = undefined;
 
     return style;
   });
