@@ -15,4 +15,11 @@ const config = withMetroConfig(getDefaultConfig(__dirname), {
   dirname: __dirname,
 });
 
+// Required for react-native-worklets init with Expo (inlineRequires off by default)
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    inlineRequires: true,
+  },
+});
+
 module.exports = config;

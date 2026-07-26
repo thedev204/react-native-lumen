@@ -11,6 +11,7 @@ import {
   withSpring,
   withTiming,
   useAnimatedRef,
+  cancelAnimation,
   default as Animated,
   type WithSpringConfig,
 } from 'react-native-reanimated';
@@ -253,6 +254,32 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   const followBaseTargetY = useSharedValue(0);
   const followBaseScrollY = useSharedValue(0);
   const followTargetActive = useSharedValue(false);
+
+  // Snap spotlight geometry back to the initial (hidden) state so the next
+  // start() can replay the entrance spring from a fresh origin.
+  const resetSpotlightGeometry = useCallback(() => {
+    cancelAnimation(targetX);
+    cancelAnimation(targetY);
+    cancelAnimation(targetWidth);
+    cancelAnimation(targetHeight);
+    cancelAnimation(targetRadius);
+    cancelAnimation(zoneBorderWidth);
+    targetX.value = 0;
+    targetY.value = 0;
+    targetWidth.value = 0;
+    targetHeight.value = 0;
+    targetRadius.value = 10;
+    zoneBorderWidth.value = DEFAULT_ZONE_STYLE.borderWidth;
+    followTargetActive.value = false;
+  }, [
+    targetX,
+    targetY,
+    targetWidth,
+    targetHeight,
+    targetRadius,
+    zoneBorderWidth,
+    followTargetActive,
+  ]);
 
   // Track current step's resolved zone style
   const currentZoneStyle = useMemo<ZoneStyle | null>(() => {
@@ -513,10 +540,13 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       if (firstStep) {
         // Check if the target step is registered (mounted)
         if (steps[firstStep]) {
+          // Fresh entrance: snap hole back to initial zeros before springing
+          resetSpotlightGeometry();
           setCurrentStep(firstStep);
           setTimeout(() => animateToStep(firstStep), 0);
         } else {
           // Step not mounted yet (on a different screen) - set as pending
+          resetSpotlightGeometry();
           pendingStepRef.current = firstStep;
           // Don't set currentStep or opacity - wait for TourZone to mount
         }
@@ -531,14 +561,17 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       autoResume,
       tourId,
       maxAge,
+      resetSpotlightGeometry,
     ]
   );
 
   const stop = useCallback(() => {
     setCurrentStep(null);
+    cancelAnimation(opacity);
     opacity.value = withTiming(0, { duration: 300 });
+    resetSpotlightGeometry();
     // Note: We do NOT clear progress on stop - only on complete or explicit clearProgress
-  }, [opacity]);
+  }, [opacity, resetSpotlightGeometry]);
 
   // Clear progress helper
   const clearProgress = useCallback(async () => {

@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.1.6] - 2026-07-26
+
+### Added
+
+- `followTarget` config to track the zone/tooltip while scrolling (#13).
+
+### Fixed
+
+- Tooltip viewport overflow when the target is too tall (#12).
+- Spotlight entrance animation not replaying after `stop()` → `start()` (#11).
+
+---
+
+## [1.1.5] - 2026-06-13
+
+### Fixed
+
+- Reanimated "Reading from `value` during component render" warning (#10).
+
+---
+
 ## [1.1.4] - 2026-04-08
 
 ### Fixed
