@@ -60,4 +60,18 @@ describe('getTooltipTop', () => {
     const top = getTooltipTop(250, 360, 120, SCREEN_HEIGHT);
     expect(top).toBe(250 - 120 - TOOLTIP_TARGET_GAP);
   });
+
+  it('centers the tooltip when the target is scrolled fully above the viewport', () => {
+    // With followTarget enabled the zone follows the element off-screen;
+    // the tooltip must stay visible instead of being dragged off with it.
+    const top = getTooltipTop(-500, 400, TOOLTIP_HEIGHT, SCREEN_HEIGHT);
+    expect(top).toBe((SCREEN_HEIGHT - TOOLTIP_HEIGHT) / 2);
+  });
+
+  it('centers the tooltip when the target is scrolled fully below the viewport', () => {
+    // aboveTop would be 500: it starts on-screen but the tooltip's bottom
+    // edge (500+180=680) overflows, so "above" must not count as fitting.
+    const top = getTooltipTop(700, 400, TOOLTIP_HEIGHT, SCREEN_HEIGHT);
+    expect(top).toBe((SCREEN_HEIGHT - TOOLTIP_HEIGHT) / 2);
+  });
 });

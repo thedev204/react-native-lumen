@@ -37,8 +37,13 @@ export const getTooltipTop = (
   const aboveTop = targetY - tooltipHeight - TOOLTIP_TARGET_GAP;
   const belowTop = targetY + targetHeight + TOOLTIP_TARGET_GAP;
 
-  const fitsAbove = aboveTop >= TOOLTIP_EDGE_MARGIN;
+  // A side only fits if the ENTIRE tooltip rect stays inside the viewport.
+  // (A target scrolled off-screen must not drag the tooltip off with it.)
+  const fitsAbove =
+    aboveTop >= TOOLTIP_EDGE_MARGIN &&
+    aboveTop + tooltipHeight <= screenHeight - TOOLTIP_EDGE_MARGIN;
   const fitsBelow =
+    belowTop >= TOOLTIP_EDGE_MARGIN &&
     belowTop + tooltipHeight <= screenHeight - TOOLTIP_EDGE_MARGIN;
 
   if (shouldPlaceAbove && fitsAbove) return aboveTop;

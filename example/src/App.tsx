@@ -52,6 +52,8 @@ export default function App() {
               // Persistence - saves progress to storage (MMKV or AsyncStorage)
               persistence: persistenceConfig,
               preventInteraction: false,
+              // followTarget - zone and tooltip track the target while scrolling
+              followTarget: true,
               // enableGlow - enable/disable glow effect for all steps (can still be overridden per-step)
               enableGlow: false,
             }}

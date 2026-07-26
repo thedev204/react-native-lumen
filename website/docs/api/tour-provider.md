@@ -43,6 +43,7 @@ interface TourConfig {
   persistence?: TourPersistenceConfig;
   enableGlow?: boolean;
   tooltipStyles?: TooltipStyles;
+  followTarget?: boolean;
 }
 ```
 
@@ -57,6 +58,7 @@ interface TourConfig {
 | `persistence`        | `TourPersistenceConfig`           | `undefined` | Configuration for saving and resuming tour progress.                                 |
 | `enableGlow`         | `boolean`                         | `false`     | Enables the glow effect around highlighted zones.                                    |
 | `tooltipStyles`      | `TooltipStyles`                   | `undefined` | Custom styles for the default tooltip card.                                          |
+| `followTarget`       | `boolean`                         | `false`     | If `true`, the zone and tooltip follow the target when the user scrolls or it moves. |
 
 ## Animation Presets
 

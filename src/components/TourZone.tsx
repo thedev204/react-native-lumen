@@ -25,6 +25,7 @@ import type {
   ZoneShape,
   CardProps,
 } from '../types';
+import { computeZoneFrame } from '../utils/zoneGeometry';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
@@ -99,6 +100,10 @@ export const TourZone: React.FC<TourZoneProps> = ({
     targetWidth,
     targetHeight,
     targetRadius,
+    scrollOffsetY,
+    followBaseTargetY,
+    followBaseScrollY,
+    followTargetActive,
     config,
     registerScrollEndCallback,
     unregisterScrollEndCallback,
@@ -108,6 +113,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
 
   const viewRef = useAnimatedRef<any>();
   const isActive = currentStep === stepKey;
+  const followTarget = config?.followTarget === true;
 
   const isScrolling = useSharedValue(false);
   const isScrollingRef = useRef(false);
@@ -164,8 +170,9 @@ export const TourZone: React.FC<TourZoneProps> = ({
   useLayoutEffect(() => {
     if (isActive) {
       setIsScrolling(true);
+      followTargetActive.value = false;
     }
-  }, [isActive, setIsScrolling]);
+  }, [isActive, setIsScrolling, followTargetActive]);
 
   // Reads the element's final screen position and updates the overlay.
   // onComplete fires after updateStepLayout succeeds — used to fade back in
@@ -469,7 +476,8 @@ export const TourZone: React.FC<TourZoneProps> = ({
   // because the new closure has to be (re)processed during render.
   const frameWorklet = useCallback(() => {
     'worklet';
-    if (!isActive || isScrolling.value) {
+    // When followTarget is enabled, the JS-side follow poll owns tracking.
+    if (!isActive || isScrolling.value || followTarget) {
       return;
     }
     try {
@@ -495,45 +503,20 @@ export const TourZone: React.FC<TourZoneProps> = ({
             stiffness: 100,
           };
 
-          const zpt =
-            resolvedZoneStyle.paddingTop ?? resolvedZoneStyle.padding ?? 0;
-          const zpr =
-            resolvedZoneStyle.paddingRight ?? resolvedZoneStyle.padding ?? 0;
-          const zpb =
-            resolvedZoneStyle.paddingBottom ?? resolvedZoneStyle.padding ?? 0;
-          const zpl =
-            resolvedZoneStyle.paddingLeft ?? resolvedZoneStyle.padding ?? 0;
-          const zShape = resolvedZoneStyle.shape ?? 'rounded-rect';
+          const frame = computeZoneFrame(
+            x,
+            y,
+            width,
+            height,
+            resolvedZoneStyle,
+            borderRadius
+          );
 
-          let sx = x - zpl;
-          let sy = y - zpt;
-          let sw = width + zpl + zpr;
-          let sh = height + zpt + zpb;
-          let sr = borderRadius;
-
-          if (zShape === 'circle') {
-            const cx = x + width / 2;
-            const cy = y + height / 2;
-            const radius =
-              Math.max(width, height) / 2 + (resolvedZoneStyle.padding ?? 0);
-            sx = cx - radius;
-            sy = cy - radius;
-            sw = radius * 2;
-            sh = radius * 2;
-            sr = radius;
-          } else if (zShape === 'pill') {
-            sx = x - zpl;
-            sy = y - zpt;
-            sw = width + zpl + zpr;
-            sh = height + zpt + zpb;
-            sr = sh / 2;
-          }
-
-          targetX.value = withSpring(sx, springConfig);
-          targetY.value = withSpring(sy, springConfig);
-          targetWidth.value = withSpring(sw, springConfig);
-          targetHeight.value = withSpring(sh, springConfig);
-          targetRadius.value = withSpring(sr, springConfig);
+          targetX.value = withSpring(frame.x, springConfig);
+          targetY.value = withSpring(frame.y, springConfig);
+          targetWidth.value = withSpring(frame.width, springConfig);
+          targetHeight.value = withSpring(frame.height, springConfig);
+          targetRadius.value = withSpring(frame.radius, springConfig);
         }
       }
     } catch {
@@ -546,6 +529,7 @@ export const TourZone: React.FC<TourZoneProps> = ({
   }, [
     isActive,
     isScrolling,
+    followTarget,
     viewRef,
     containerRef,
     config,
@@ -554,6 +538,110 @@ export const TourZone: React.FC<TourZoneProps> = ({
   ]);
 
   useFrameCallback(frameWorklet, isActive);
+
+  // Follow mode: the JS thread periodically re-anchors the element's accurate
+  // screen position. Scroll movement between anchors is handled below on the
+  // UI thread from the live scroll offset, avoiding 20Hz visual steps.
+  useEffect(() => {
+    if (!isActive || !followTarget) return;
+
+    // NaN baseline: the first poll only records the position, so in-flight
+    // step transition springs are never interrupted.
+    let lastX = NaN;
+    let lastY = NaN;
+    let lastW = NaN;
+    let lastH = NaN;
+
+    const poll = () => {
+      // The orchestrated scroll/transition pipeline owns the position.
+      if (isScrollingRef.current) return;
+
+      const view = viewRef.current as any;
+      const container = containerRef.current as any;
+      if (!view || !container) return;
+
+      view.measure(
+        (
+          _x: number,
+          _y: number,
+          width: number,
+          height: number,
+          pageX: number,
+          pageY: number
+        ) => {
+          if (width <= 0 || height <= 0 || isNaN(pageX) || isNaN(pageY)) {
+            return;
+          }
+          container.measure(
+            (
+              _cx: number,
+              _cy: number,
+              _cw: number,
+              _ch: number,
+              containerPageX: number,
+              containerPageY: number
+            ) => {
+              const x = pageX - containerPageX;
+              const y = pageY - containerPageY;
+
+              const moved =
+                Math.abs(x - lastX) > 0.5 ||
+                Math.abs(y - lastY) > 0.5 ||
+                Math.abs(width - lastW) > 0.5 ||
+                Math.abs(height - lastH) > 0.5;
+
+              lastX = x;
+              lastY = y;
+              lastW = width;
+              lastH = height;
+
+              // Only re-anchor after real movement. Skipping the first poll
+              // lets the normal step-transition spring finish uninterrupted.
+              if (!moved) return;
+
+              const frame = computeZoneFrame(
+                x,
+                y,
+                width,
+                height,
+                resolvedZoneStyle,
+                borderRadius
+              );
+
+              targetX.value = frame.x;
+              targetY.value = frame.y;
+              targetWidth.value = frame.width;
+              targetHeight.value = frame.height;
+              targetRadius.value = frame.radius;
+
+              followBaseTargetY.value = frame.y;
+              followBaseScrollY.value = scrollOffsetY.value;
+              followTargetActive.value = true;
+            }
+          );
+        }
+      );
+    };
+
+    const intervalId = setInterval(poll, 50);
+    return () => clearInterval(intervalId);
+  }, [
+    isActive,
+    followTarget,
+    viewRef,
+    containerRef,
+    resolvedZoneStyle,
+    borderRadius,
+    targetX,
+    targetY,
+    targetWidth,
+    targetHeight,
+    targetRadius,
+    followBaseTargetY,
+    followBaseScrollY,
+    followTargetActive,
+    scrollOffsetY,
+  ]);
 
   // Sync position if the element physically resizes, but strictly avoid
   // measuring if we are currently handling an orchestrated scroll.

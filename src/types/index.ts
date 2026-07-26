@@ -355,6 +355,19 @@ export interface TourConfig {
    * @default false
    */
   enableGlow?: boolean;
+  /**
+   * If true, the highlight zone and tooltip continuously follow the target
+   * element: when the user scrolls, or when the element moves/resizes for any
+   * reason while its step is active.
+   *
+   * For frame-rate scroll tracking, spread `scrollViewProps` from
+   * `useTourScrollView()` onto an `Animated.ScrollView`.
+   *
+   * When false (default), the zone is positioned once when the step activates
+   * and stays there until the next step.
+   * @default false
+   */
+  followTarget?: boolean;
 }
 
 export interface TourContextType {
@@ -443,6 +456,18 @@ export interface InternalTourContextType extends TourContextType {
   targetHeight: SharedValue<number>;
   targetRadius: SharedValue<number>;
   opacity: SharedValue<number>;
+  /**
+   * Vertical scroll offset of the registered ScrollView, updated on the UI
+   * thread by the animated onScroll handler wired in useTourScrollView.
+   * Used for 60fps followTarget tracking. Stays 0 when unwired.
+   */
+  scrollOffsetY: SharedValue<number>;
+  /** Base zone Y captured by TourZone for smooth scroll-delta tracking. */
+  followBaseTargetY: SharedValue<number>;
+  /** Scroll offset paired with followBaseTargetY. */
+  followBaseScrollY: SharedValue<number>;
+  /** Whether the animated onScroll handler currently owns targetY. */
+  followTargetActive: SharedValue<boolean>;
   /** Border width for the zone glow ring */
   zoneBorderWidth: SharedValue<number>;
   containerRef: React.RefObject<any>;

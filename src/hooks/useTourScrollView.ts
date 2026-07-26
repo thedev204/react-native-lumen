@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useTour } from './useTour';
 
 export interface TourScrollViewOptions {
@@ -41,10 +42,13 @@ export interface TourScrollViewResult {
   onMomentumScrollEnd: () => void;
   /**
    * Props to spread onto your ScrollView for full tour integration.
-   * Includes ref, onMomentumScrollEnd, and scrollEnabled (if disableScrollDuringTour is true).
+   * Includes ref, onMomentumScrollEnd, followTarget's animated onScroll
+   * handler, and scrollEnabled (if disableScrollDuringTour is true).
    */
   scrollViewProps: {
     ref: React.RefObject<any>;
+    onScroll?: (event: any) => void;
+    scrollEventThrottle?: number;
     onMomentumScrollEnd: () => void;
     scrollEnabled?: boolean;
   };
@@ -80,10 +84,29 @@ export function useTourScrollView(
 
   // Get the tour context - use type assertion since we know the internal structure
   const tour = useTour();
-  const { scrollViewRef, currentStep, triggerScrollEnd } = tour as any;
+  const {
+    scrollViewRef,
+    currentStep,
+    triggerScrollEnd,
+    scrollOffsetY,
+    targetY,
+    followBaseTargetY,
+    followBaseScrollY,
+    followTargetActive,
+    config,
+  } = tour as any;
 
   const isTourActive = currentStep !== null;
   const scrollEnabled = disableScrollDuringTour ? !isTourActive : true;
+  const followTarget = config?.followTarget === true;
+
+  const onScroll = useAnimatedScrollHandler((event) => {
+    const y = event.contentOffset.y;
+    scrollOffsetY.value = y;
+    if (followTargetActive.value) {
+      targetY.value = followBaseTargetY.value - (y - followBaseScrollY.value);
+    }
+  });
 
   const scrollTo = useCallback(
     (opts: { x?: number; y?: number; animated?: boolean }) => {
@@ -105,17 +128,30 @@ export function useTourScrollView(
   const scrollViewProps = useMemo(() => {
     const props: {
       ref: React.RefObject<any>;
+      onScroll?: (event: any) => void;
+      scrollEventThrottle?: number;
       onMomentumScrollEnd: () => void;
       scrollEnabled?: boolean;
     } = {
       ref: scrollViewRef,
       onMomentumScrollEnd: triggerScrollEnd,
     };
+    if (followTarget) {
+      props.onScroll = onScroll;
+      props.scrollEventThrottle = 16;
+    }
     if (disableScrollDuringTour) {
       props.scrollEnabled = scrollEnabled;
     }
     return props;
-  }, [scrollViewRef, triggerScrollEnd, disableScrollDuringTour, scrollEnabled]);
+  }, [
+    scrollViewRef,
+    triggerScrollEnd,
+    followTarget,
+    onScroll,
+    disableScrollDuringTour,
+    scrollEnabled,
+  ]);
 
   return {
     scrollViewRef,

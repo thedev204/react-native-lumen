@@ -247,6 +247,12 @@ export const TourProvider: React.FC<TourProviderProps> = ({
   const targetRadius = useSharedValue(10); // Default border radius
   const opacity = useSharedValue(0); // 0 = hidden, 1 = visible
   const zoneBorderWidth = useSharedValue(DEFAULT_ZONE_STYLE.borderWidth);
+  // Scroll offset of the registered ScrollView (UI-thread updated).
+  // Drives 60fps followTarget tracking in TourZone.
+  const scrollOffsetY = useSharedValue(0);
+  const followBaseTargetY = useSharedValue(0);
+  const followBaseScrollY = useSharedValue(0);
+  const followTargetActive = useSharedValue(false);
 
   // Track current step's resolved zone style
   const currentZoneStyle = useMemo<ZoneStyle | null>(() => {
@@ -648,6 +654,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetRadius,
       opacity,
       zoneBorderWidth,
+      scrollOffsetY,
+      followBaseTargetY,
+      followBaseScrollY,
+      followTargetActive,
       steps,
       config,
       containerRef,
@@ -678,6 +688,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       targetRadius,
       opacity,
       zoneBorderWidth,
+      scrollOffsetY,
+      followBaseTargetY,
+      followBaseScrollY,
+      followTargetActive,
       steps,
       config,
       containerRef,
