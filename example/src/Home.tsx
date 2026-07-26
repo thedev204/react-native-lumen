@@ -45,7 +45,7 @@ export const Home = () => {
         <PremiumBanner />
 
         {/* Bottom padding for FAB */}
-        <View style={{ height: 100 }} />
+        <View style={styles.fabSpacer} />
       </Animated.ScrollView>
 
       {/* Floating Action Button */}
@@ -138,7 +138,8 @@ const ActivityList = () => {
             <View
               style={[
                 styles.activityCard,
-                { borderTopColor: item.color, borderTopWidth: 4 },
+                styles.activityCardAccent,
+                { borderTopColor: item.color },
               ]}
             >
               <Text style={styles.activityIcon}>{item.icon}</Text>
@@ -259,7 +260,9 @@ const StatsCard = () => {
               <Text
                 style={[
                   styles.statDelta,
-                  { color: s.positive ? '#00B894' : '#D63031' },
+                  s.positive
+                    ? styles.statDeltaPositive
+                    : styles.statDeltaNegative,
                 ]}
               >
                 {s.delta}
@@ -318,7 +321,7 @@ const TrendingCard = () => {
           {TRENDING.map((t) => (
             <View key={t.tag} style={styles.trendRow}>
               <View style={[styles.trendDot, { backgroundColor: t.color }]} />
-              <View style={{ flex: 1 }}>
+              <View style={styles.trendInfo}>
                 <Text style={styles.trendTag}>{t.tag}</Text>
                 <Text style={styles.trendPosts}>{t.posts}</Text>
               </View>
@@ -343,7 +346,7 @@ const PremiumBanner = () => {
         style={styles.section}
       >
         <View style={styles.upgradeBanner}>
-          <Zap color="#FDCB6E" size={32} style={{ marginBottom: 12 }} />
+          <Zap color="#FDCB6E" size={32} style={styles.upgradeIcon} />
           <Text style={styles.upgradeTitle}>Unlock Premium</Text>
           <Text style={styles.upgradeText}>
             Get advanced analytics, unlimited posts, and exclusive features with
@@ -453,6 +456,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 1,
   },
+  activityCardAccent: { borderTopWidth: 4 },
   activityIcon: { fontSize: 24, marginBottom: 12 },
   activityCardTitle: {
     fontSize: 14,
@@ -530,6 +534,8 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, fontWeight: 'bold', color: '#2D3436' },
   statLabel: { fontSize: 12, color: '#636E72', marginTop: 2 },
   statDelta: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+  statDeltaPositive: { color: '#00B894' },
+  statDeltaNegative: { color: '#D63031' },
 
   // Trends
   trendList: {
@@ -549,6 +555,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   trendDot: { width: 10, height: 10, borderRadius: 5 },
+  trendInfo: { flex: 1 },
   trendTag: { fontSize: 15, fontWeight: '600', color: '#2D3436' },
   trendPosts: { fontSize: 12, color: '#636E72', marginTop: 2 },
 
@@ -588,6 +595,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 4,
   },
+  upgradeIcon: { marginBottom: 12 },
   upgradeTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -610,6 +618,7 @@ const styles = StyleSheet.create({
   upgradeBtnText: { color: '#2D3436', fontWeight: 'bold', fontSize: 15 },
 
   // FAB
+  fabSpacer: { height: 100 },
   fabContainer: { position: 'absolute', bottom: 24, right: 24 },
   fab: {
     width: 56,
