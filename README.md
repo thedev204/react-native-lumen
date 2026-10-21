@@ -28,7 +28,7 @@
 <h1 align="center">React Native Lumen 💡</h1>
 
 <p align="center">
-  A high-performance, fully customizable app tour library for React Native, powered by Reanimated 3.
+  A high-performance, fully customizable app tour library for React Native, powered by Reanimated 3+.
 </p>
 
 <p align="center">
@@ -52,6 +52,7 @@
 | `react-native-reanimated`      | >= 3.0.0  |
 | `react-native-svg`             | >= 12.0.0 |
 | `react-native-gesture-handler` | >= 2.0.0  |
+| `react-native-worklets`        | >= 0.5.0  |
 
 ## Installation
 

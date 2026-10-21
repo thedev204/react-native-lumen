@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.1.7] - 2026-10-21
+
+### Changed
+
+- Example app upgraded to Expo SDK 58, React Native 0.88, and React 19.3.
+- Development stack aligned with Reanimated 4.7 and `react-native-worklets` 0.13.
+- Peer dependency for `react-native-worklets` raised to `>=0.5.0`.
+- Jest migrated to `@react-native/jest-preset` (required by React Native 0.88).
+- TypeScript upgraded to 6.0 for the library and example.
+
+### Fixed
+
+- Per-step spring overrides compatible with Reanimated 4's mutually exclusive `SpringConfig` type.
+
+### Docs
+
+- Documented `react-native-worklets` in installation requirements.
+
+---
+
 ## [1.1.6] - 2026-07-26
 
 ### Added

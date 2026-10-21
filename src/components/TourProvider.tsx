@@ -296,18 +296,30 @@ export const TourProvider: React.FC<TourProviderProps> = ({
       const stepStyle = step?.zoneStyle;
       const baseConfig = config?.springConfig ?? DEFAULT_SPRING_CONFIG;
 
-      // Allow per-step spring overrides
+      // Per-step damping/stiffness overrides use a physics-based SpringConfig.
       if (
         stepStyle?.springDamping !== undefined ||
         stepStyle?.springStiffness !== undefined
       ) {
+        const baseDamping =
+          'damping' in baseConfig ? baseConfig.damping : undefined;
+        const baseStiffness =
+          'stiffness' in baseConfig ? baseConfig.stiffness : undefined;
+
         return {
-          damping: stepStyle.springDamping ?? baseConfig.damping,
-          stiffness: stepStyle.springStiffness ?? baseConfig.stiffness,
+          damping:
+            stepStyle.springDamping ??
+            baseDamping ??
+            DEFAULT_ZONE_STYLE.springDamping,
+          stiffness:
+            stepStyle.springStiffness ??
+            baseStiffness ??
+            DEFAULT_ZONE_STYLE.springStiffness,
           mass: baseConfig.mass,
           overshootClamping: baseConfig.overshootClamping,
-          restDisplacementThreshold: baseConfig.restDisplacementThreshold,
-          restSpeedThreshold: baseConfig.restSpeedThreshold,
+          energyThreshold: baseConfig.energyThreshold,
+          velocity: baseConfig.velocity,
+          reduceMotion: baseConfig.reduceMotion,
         };
       }
       return baseConfig;

@@ -18,6 +18,14 @@ Or with Yarn:
 yarn add react-native-lumen react-native-reanimated react-native-svg react-native-gesture-handler react-native-worklets
 ```
 
+| Package                        | Version   |
+| :----------------------------- | :-------- |
+| `react-native`                 | >= 0.70.0 |
+| `react-native-reanimated`      | >= 3.0.0  |
+| `react-native-svg`             | >= 12.0.0 |
+| `react-native-gesture-handler` | >= 2.0.0  |
+| `react-native-worklets`        | >= 0.5.0  |
+
 > For a complete, running example showcasing different configurations and styles, check out the [`example`](https://github.com/thedev204/react-native-lumen/tree/main/example) folder in the repository.
 
 ---

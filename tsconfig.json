@@ -35,6 +35,9 @@
   },
   "exclude": [
     "website",
-    "lib"
+    "lib",
+    "**/__tests__",
+    "**/__fixtures__",
+    "**/__mocks__"
   ]
 }

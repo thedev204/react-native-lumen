@@ -5,7 +5,7 @@ slug: /
 
 # Introduction
 
-**React Native Lumen** is a high-performance, fully customizable app tour library for React Native, powered by Reanimated 3.
+**React Native Lumen** is a high-performance, fully customizable app tour library for React Native, powered by Reanimated 3+.
 
 [![npm version](https://img.shields.io/npm/v/react-native-lumen.svg)](https://www.npmjs.com/package/react-native-lumen)
 
@@ -30,3 +30,4 @@ slug: /
 | `react-native-reanimated`      | >= 3.0.0  |
 | `react-native-svg`             | >= 12.0.0 |
 | `react-native-gesture-handler` | >= 2.0.0  |
+| `react-native-worklets`        | >= 0.5.0  |
